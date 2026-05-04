@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segurança em Jogo — Leroy Merlin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&family=Exo+2:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Floating bubbles -->
+<div class="bubbles-bg" id="bubblesContainer"></div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="#" onclick="showPage('home')">
+      <img src="img/Logo_SECDECK.png" class="logo-icon" alt="SECDECK logo">
+      <div class="logo-text">
+        <strong>SECDECK</strong>
+        <span>Conscientização Digital</span>
+      </div>
+    </a>
+    <nav>
+      <button class="nav-btn active" onclick="showPage('home')" id="nav-home">🏠 Início</button>
+      <button class="nav-btn" onclick="showPage('cards')" id="nav-cards">🃏 Cards</button>
+      <button class="nav-btn" onclick="showPage('memory')" id="nav-memory">🧩 Memória</button>
+      <button class="nav-btn" onclick="showPage('quiz')" id="nav-quiz">❓ Quiz</button>
+      <button class="nav-btn" onclick="showPage('tips')" id="nav-tips">💡 Dicas</button>
+    </nav>
+    <div class="leroy-badge">Leroy Merlin</div>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+  <!-- ─── HOME PAGE ─── -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-badge">🎮 Plataforma Gamificada de Segurança</div>
+      <div class="hero-chars">
+        <span>🛡️</span><span>🔐</span><span>🎮</span><span>🏆</span><span>🌐</span>
+      </div>
+      <h1>Proteja-se<br>enquanto se diverte!</h1>
+      <p>Aprenda sobre segurança digital de forma interativa e divertida. Jogue, acumule pontos e torne-se um guardião da segurança na Leroy Merlin!</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-pill glass">
+        <div class="num" id="totalCards">60</div>
+        <div class="lbl">Cards de Aprendizado</div>
+      </div>
+      <div class="stat-pill glass">
+        <div class="num" id="totalScore">0</div>
+        <div class="lbl">Sua Pontuação</div>
+      </div>
+      <div class="stat-pill glass">
+        <div class="num" id="completedItems">0</div>
+        <div class="lbl">Itens Concluídos</div>
+      </div>
+      <div class="stat-pill glass">
+        <div class="num">3</div>
+        <div class="lbl">Módulos Disponíveis</div>
+      </div>
+    </div>
+
+    <!-- Game menu cards -->
+    <div class="section-label">🕹️ Escolha seu Jogo</div>
+    <div class="games-grid">
+      <div class="game-card glass purple" onclick="showPage('cards')">
+        <span class="game-icon">🃏</span>
+        <h3>Cards de Aprendizado</h3>
+        <p>Descubra dicas reais de segurança! Clique nas cartas para revelar conselhos valiosos sobre phishing, trojans, spyware e muito mais.</p>
+        <span class="game-tag">60 cards • Iniciante a Avançado</span>
+      </div>
+      <div class="game-card glass teal" onclick="showPage('memory')">
+        <span class="game-icon">🧩</span>
+        <h3>Jogo da Memória</h3>
+        <p>Combine ameaças com suas descrições! Treine sua mente para reconhecer perigos digitais enquanto desafia sua memória.</p>
+        <span class="game-tag">16 pares • 3 níveis</span>
+      </div>
+      <div class="game-card glass green" onclick="showPage('quiz')">
+        <span class="game-icon">❓</span>
+        <h3>Questionário Adaptativo</h3>
+        <p>Situações reais do cotidiano corporativo! Responda e saiba se você faria a escolha certa diante de uma ameaça.</p>
+        <span class="game-tag">20 perguntas • Situacional</span>
+      </div>
+    </div>
+
+    <!-- Quick tips preview -->
+    <div class="section-label" style="margin-top:2.5rem;">⚡ Dica Rápida do Dia</div>
+    <div class="tips-grid" id="quickTips"></div>
+  </div>
+
+  <!-- ─── CARDS PAGE ─── -->
+  <div class="page" id="page-cards">
+    <div class="page-header">
+      <h2>🃏 Cards de Aprendizado</h2>
+      <p>Clique em qualquer card para revelar a dica de segurança! Cada card tem uma lição valiosa.</p>
+    </div>
+
+    <div class="filter-pills">
+      <button class="pill active" onclick="filterCards('all', this)">🌐 Todos</button>
+      <button class="pill" onclick="filterCards('phishing', this)">🎣 Phishing</button>
+      <button class="pill" onclick="filterCards('malware', this)">🦠 Malware</button>
+      <button class="pill" onclick="filterCards('senha', this)">🔑 Senhas</button>
+      <button class="pill" onclick="filterCards('redes', this)">📶 Redes</button>
+      <button class="pill" onclick="filterCards('social', this)">🎭 Eng. Social</button>
+      <button class="pill" onclick="filterCards('corporativo', this)">🏢 Corporativo</button>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <!-- ─── MEMORY PAGE ─── -->
+  <div class="page" id="page-memory">
+    <div class="page-header">
+      <h2>🧩 Jogo da Memória</h2>
+      <p>Combine as ameaças com suas descrições. Encontre todos os pares para vencer!</p>
+    </div>
+
+    <div class="memory-controls">
+      <select class="btn btn-ghost" id="memDifficulty" style="cursor:pointer;padding:0.6rem 1.2rem;">
+        <option value="easy">🌱 Fácil (8 pares)</option>
+        <option value="medium" selected>⚡ Médio (12 pares)</option>
+        <option value="hard">🔥 Difícil (16 pares)</option>
+      </select>
+      <button class="btn btn-primary" onclick="startMemory()">🔄 Novo Jogo</button>
+    </div>
+
+    <div class="memory-info">
+      <div class="mem-stat glass">
+        <div class="val" id="memMoves">0</div>
+        <div class="lbl">Movimentos</div>
+      </div>
+      <div class="mem-stat glass">
+        <div class="val" id="memPairs">0</div>
+        <div class="lbl">Pares ✅</div>
+      </div>
+      <div class="mem-stat glass">
+        <div class="val" id="memTime">0:00</div>
+        <div class="lbl">Tempo</div>
+      </div>
+    </div>
+
+    <div class="memory-grid" id="memoryGrid"></div>
+  </div>
+
+  <!-- ─── QUIZ PAGE ─── -->
+  <div class="page" id="page-quiz">
+    <div class="page-header">
+      <h2>❓ Questionário de Segurança</h2>
+      <p>Situações reais do dia a dia corporativo. Escolha a opção mais segura!</p>
+    </div>
+
+    <div class="quiz-container">
+      <div id="quizGameArea">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div>
+        </div>
+        <div class="quiz-meta">
+          <span id="quizCounter">Pergunta 1 de 15</span>
+          <span>⭐ Pontos: <span id="quizScore">0</span></span>
+        </div>
+        <div class="quiz-card glass" id="quizCard">
+          <span class="quiz-cat" id="quizCat">Phishing</span>
+          <div class="quiz-question" id="quizQuestion">Carregando...</div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+          <button class="quiz-next" id="quizNext" onclick="nextQuestion()">Próxima →</button>
+        </div>
+      </div>
+      <div class="quiz-result glass" id="quizResult">
+        <div class="result-emoji" id="resultEmoji">🏆</div>
+        <div class="result-score" id="resultScore">0 pts</div>
+        <div class="result-msg" id="resultMsg">Você completou o questionário!</div>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
+          <button class="btn btn-primary" onclick="restartQuiz()">🔄 Jogar Novamente</button>
+          <button class="btn btn-ghost" onclick="showPage('tips')">💡 Ver Dicas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TIPS PAGE ─── -->
+  <div class="page" id="page-tips">
+    <div class="page-header">
+      <h2>💡 Central de Dicas de Segurança</h2>
+      <p>Seu guia completo para navegar com segurança no ambiente corporativo e pessoal.</p>
+    </div>
+    <div id="allTipsContent"></div>
+  </div>
+
+</main>
+
+<!-- WIN OVERLAY (Memory) -->
+<div class="win-overlay" id="winOverlay">
+  <div class="win-box">
+    <div style="font-size:3.5rem">🏆</div>
+    <h2>Parabéns!</h2>
+    <p style="color:var(--text-mid);margin-bottom:1rem;" id="winMsg">Você encontrou todos os pares!</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="startMemory();document.getElementById('winOverlay').classList.remove('show')">🔄 Novo Jogo</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('winOverlay').classList.remove('show')">✖ Fechar</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  🛡️ <strong>SECDECK</strong> — Conscientização Digital &nbsp;|&nbsp;
+  Desenvolvida para <strong style="color:var(--leroy-green)">Leroy Merlin Brasil</strong> &nbsp;|&nbsp;
+  Todos os direitos reservados © 2025
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+
+const CARDS_DATA = [
+  // PHISHING
+  { id:1, cat:'phishing', emoji:'🎣', title:'Phishing por E-mail', subtitle:'Como reconhecer', tip:'Sempre verifique o remetente completo (não só o nome). E-mails legítimos do banco ou RH da empresa nunca pedem sua senha por e-mail. Em caso de dúvida, ligue diretamente para o setor.' },
+  { id:2, cat:'phishing', emoji:'🔗', title:'Links Suspeitos', subtitle:'Antes de clicar', tip:'Passe o mouse sobre o link antes de clicar. Se a URL não corresponder ao site esperado (ex: "leroy-merlin-rh.xyz" em vez de "leroymerlin.com.br"), NÃO clique. Denuncie ao TI.' },
+  { id:3, cat:'phishing', emoji:'📧', title:'E-mails Urgentes', subtitle:'Alarme de manipulação', tip:'"Sua conta será bloqueada em 24h!" é uma tática clássica de phishing. Empresas legítimas raramente impõem urgência extrema. Respire fundo e verifique a fonte antes de agir.' },
+  { id:4, cat:'phishing', emoji:'📱', title:'Smishing (SMS)', subtitle:'Phishing por mensagem', tip:'Golpes via SMS (smishing) imitam entregas de pacotes, bancos ou Receita Federal. Nunca clique em links de SMS não solicitados. Acesse o site oficial diretamente no navegador.' },
+  { id:5, cat:'phishing', emoji:'🎭', title:'Spear Phishing', subtitle:'Ataque personalizado', tip:'Golpistas pesquisam suas redes sociais para criar e-mails personalizados ("Olá João, conforme falamos na reunião de segunda..."). Desconfie mesmo de e-mails que parecem conhecê-lo.' },
+  { id:6, cat:'phishing', emoji:'🌐', title:'Sites Falsos', subtitle:'URL confiável?', tip:'Verifique sempre se o site começa com "https://" e tem um cadeado. Sites falsos usam domínios similares: "1eroymerlin.com" em vez de "leroymerlin.com.br". Salve os sites oficiais nos favoritos.' },
+  // MALWARE
+  { id:7, cat:'malware', emoji:'🦠', title:'Trojans', subtitle:'O cavalo de Tróia digital', tip:'Trojans se disfarçam de programas legítimos (jogos, atualizações, ferramentas). Nunca instale software de fontes desconhecidas. Use apenas a Central de Software aprovada pelo TI.' },
+  { id:8, cat:'malware', emoji:'👁️', title:'Spyware', subtitle:'Vigilância silenciosa', tip:'Spyware monitora suas atividades sem que você saiba: captura senhas, histórico de navegação e até conversas. Mantenha seu antivírus atualizado e evite instalar extensões de fontes desconhecidas.' },
+  { id:9, cat:'malware', emoji:'💰', title:'Ransomware', subtitle:'Sequestro de dados', tip:'O ransomware criptografa seus arquivos e exige resgate. A melhor defesa: backups regulares offline, não clicar em links suspeitos e manter o Windows/antivírus atualizado. NUNCA pague o resgate.' },
+  { id:10, cat:'malware', emoji:'📎', title:'Anexos Perigosos', subtitle:'Antes de abrir', tip:'Arquivos .exe, .bat, .vbs e até .docx com macros podem conter malware. Antes de abrir qualquer anexo, verifique com o remetente por outro canal (telefone) e escaneie com o antivírus.' },
+  { id:11, cat:'malware', emoji:'🖱️', title:'Keyloggers', subtitle:'Captura de teclas', tip:'Keyloggers registram tudo que você digita, incluindo senhas. Use autenticação de dois fatores (2FA) e prefira teclados virtuais para dados sensíveis em computadores compartilhados.' },
+  { id:12, cat:'malware', emoji:'🔄', title:'Atualizações Falsas', subtitle:'Pop-up armadilha', tip:'Pop-ups pedindo para "Atualizar seu Flash Player" ou "Seu PC está infectado, clique aqui!" são golpes. Feche o navegador e atualize programas somente pelos canais oficiais do fabricante.' },
+  // SENHAS
+  { id:13, cat:'senha', emoji:'🔑', title:'Senhas Fortes', subtitle:'Como criar', tip:'Use pelo menos 12 caracteres combinando maiúsculas, minúsculas, números e símbolos. Uma frase como "LeRoy@Merlin#2025!" é segura e fácil de lembrar. Evite nomes de pessoas, datas ou "123456".' },
+  { id:14, cat:'senha', emoji:'🔒', title:'Senhas Únicas', subtitle:'Uma por site', tip:'Nunca reutilize senhas! Se uma conta for comprometida, as outras ficarão expostas. Use um gerenciador de senhas aprovado pelo TI (como Bitwarden ou LastPass empresarial).' },
+  { id:15, cat:'senha', emoji:'📲', title:'Autenticação 2FA', subtitle:'Camada extra', tip:'Ative o segundo fator de autenticação (2FA) em todas as contas corporativas. Mesmo que alguém descubra sua senha, não conseguirá entrar sem o código temporário do seu celular.' },
+  { id:16, cat:'senha', emoji:'🚫', title:'Compartilhar Senhas', subtitle:'Nunca!', tip:'Jamais compartilhe sua senha corporativa, nem com colegas, gestores ou suporte técnico. O TI legítimo NUNCA pede sua senha. Se alguém solicitar, reporte imediatamente ao superior.' },
+  { id:17, cat:'senha', emoji:'🔄', title:'Troca Periódica', subtitle:'Boas práticas', tip:'Troque suas senhas a cada 90 dias ou imediatamente após suspeitar de comprometimento. Habilite notificações de login para identificar acessos não autorizados às suas contas.' },
+  // REDES
+  { id:18, cat:'redes', emoji:'📶', title:'Wi-Fi Público', subtitle:'Risco em todo lugar', tip:'Wi-Fi público de shoppings, aeroportos e cafés pode ser monitorado. Nunca acesse sistemas corporativos sem VPN em redes públicas. Prefira os dados móveis para trabalho remoto urgente.' },
+  { id:19, cat:'redes', emoji:'🔌', title:'USB Malicioso', subtitle:'Pen drive armadilha', tip:'Nunca conecte pen drives encontrados no chão ou recebidos de estranhos — é uma técnica real usada por hackers (baiting). Dispositivos USB devem ser aprovados pelo TI antes de uso.' },
+  { id:20, cat:'redes', emoji:'🛡️', title:'VPN Corporativa', subtitle:'Túnel seguro', tip:'Sempre use a VPN da empresa ao trabalhar remotamente. A VPN criptografa sua conexão, impedindo que interceptadores vejam seus dados. Nunca use VPNs pessoais não aprovadas.' },
+  { id:21, cat:'redes', emoji:'🖨️', title:'Impressoras em Rede', subtitle:'Ponto cego da segurança', tip:'Impressoras de rede são alvos comuns de ataque. Não deixe documentos sensíveis na bandeja. Troque a senha padrão de impressoras e atualize o firmware regularmente.' },
+  { id:22, cat:'redes', emoji:'📡', title:'Redes Wi-Fi Gêmeas', subtitle:'Evil Twin Attack', tip:'Hackers criam redes Wi-Fi com nomes similares ao da empresa ("Leroy_Merlin_2" em vez de "Leroy_Merlin"). Confirme sempre o nome exato da rede com o TI antes de conectar.' },
+  // SOCIAL
+  { id:23, cat:'social', emoji:'📞', title:'Vishing (Golpe por Voz)', subtitle:'Suporte falso', tip:'"Aqui é o suporte técnico da Microsoft, detectamos vírus no seu PC." Este é um golpe clássico de vishing. A Microsoft, banco ou TI nunca ligam pedindo acesso remoto não solicitado.' },
+  { id:24, cat:'social', emoji:'🎭', title:'Pretexting', subtitle:'Identidade falsa', tip:'Atacantes se passam por funcionários, fornecedores ou auditores para obter informações. Sempre confirme a identidade de visitantes e solicitantes por canal oficial antes de fornecer dados.' },
+  { id:25, cat:'social', emoji:'🤝', title:'Baiting Físico', subtitle:'Isca no mundo real', tip:'Encontrou um pen drive ou QR code em lugar suspeito? Pode ser uma armadilha (baiting). Entregue ao TI sem conectar. Reporte etiquetas e adesivos estranhos nos equipamentos da empresa.' },
+  { id:26, cat:'social', emoji:'🧠', title:'Manipulação Psicológica', subtitle:'Como funciona', tip:'Engenharia social explora emoções: medo ("sua conta será bloqueada"), ganância ("você ganhou um prêmio") e autoridade ("é o diretor pedindo"). Reconheça o gatilho emocional e desacelere.' },
+  { id:27, cat:'social', emoji:'📸', title:'Redes Sociais', subtitle:'Exposição de dados', tip:'Informações públicas nas redes sociais alimentam ataques de spear phishing. Limite o que você compartilha publicamente: cargo, rotina, projetos da empresa e informações de colegas.' },
+  // CORPORATIVO
+  { id:28, cat:'corporativo', emoji:'🏢', title:'Mesa Limpa', subtitle:'Política essencial', tip:'Ao sair da mesa, bloqueie o computador (Win+L) e guarde documentos sensíveis. Impressões com dados de clientes ou colaboradores devem ser destruídas na trituradora, não jogadas na lixeira.' },
+  { id:29, cat:'corporativo', emoji:'📋', title:'Política de Acesso', subtitle:'Privilégio mínimo', tip:'Solicite apenas os acessos necessários para sua função. Privilégios excessivos aumentam o risco em caso de comprometimento da conta. Informe ao TI quando mudar de função ou projeto.' },
+  { id:30, cat:'corporativo', emoji:'📊', title:'Dados de Clientes (LGPD)', subtitle:'Sua responsabilidade', tip:'Dados de clientes da Leroy Merlin são protegidos pela LGPD. Não compartilhe planilhas com dados pessoais por e-mail ou WhatsApp pessoal. Use apenas canais corporativos aprovados.' },
+  { id:31, cat:'corporativo', emoji:'💻', title:'Shadow IT', subtitle:'Software não autorizado', tip:'Instalar software não autorizado (mesmo gratuito) coloca a rede em risco. Programas como "ferramentas de PDF online" podem capturar documentos confidenciais. Use apenas o catálogo do TI.' },
+  { id:32, cat:'corporativo', emoji:'🔔', title:'Reporte de Incidentes', subtitle:'Não hesite!', tip:'Se suspeitar de um ataque ou incidente, reporte imediatamente ao TI via canal oficial. Cada hora de atraso pode ampliar o impacto. Não existe reporte "desnecessário" — melhor prevenir!' },
+];
+
+// Memory pairs
+const MEMORY_PAIRS = [
+  { emoji:'🎣', label:'Phishing' }, { emoji:'🦠', label:'Malware' },
+  { emoji:'🔐', label:'2FA' }, { emoji:'🕵️', label:'Spyware' },
+  { emoji:'💰', label:'Ransomware' }, { emoji:'🎭', label:'Eng. Social' },
+  { emoji:'📞', label:'Vishing' }, { emoji:'🔑', label:'Senha Forte' },
+  { emoji:'🛡️', label:'VPN' }, { emoji:'🐴', label:'Trojan' },
+  { emoji:'🖱️', label:'Keylogger' }, { emoji:'📶', label:'Wi-Fi Seguro' },
+  { emoji:'🔒', label:'Criptografia' }, { emoji:'🚫', label:'USB Suspeito' },
+  { emoji:'📋', label:'Política' }, { emoji:'🔄', label:'Backup' },
+];
+
+// Quiz data
+const QUIZ_DATA = [
+  { cat:'Phishing', q:'Você recebe um e-mail do "RH da Leroy Merlin" pedindo que atualize sua senha clicando em um link. O e-mail parece oficial mas o endereço do remetente é "rh@leroy-merlin-portal.xyz". O que você faz?', opts:['Clico no link porque o e-mail parece oficial','Verifico com o RH real por telefone antes de qualquer ação','Respondo o e-mail perguntando se é legítimo','Clico, mas fico atento a qualquer sinal suspeito'], correct:1, fb:'✅ Correto! Sempre verifique a identidade por canal independente (telefone). O domínio "leroy-merlin-portal.xyz" NÃO é o domínio oficial da empresa. Remetentes falsos são o sinal mais claro de phishing.' },
+  { cat:'Senhas', q:'Seu gerente diz que precisa da sua senha para acessar o sistema enquanto você está de férias. O que você faz?', opts:['Forneço a senha só para o meu gerente direto','Recuso e explico que o TI pode conceder acesso temporário adequado','Anoto a senha num post-it e deixo na gaveta','Crio uma senha temporária e envio por WhatsApp'], correct:1, fb:'✅ Correto! Ninguém, nem mesmo seu gestor, deve saber sua senha pessoal. O departamento de TI tem ferramentas para conceder acesso temporário de forma segura e auditável. Esta é uma política de segurança da Leroy Merlin.' },
+  { cat:'Malware', q:'Ao navegar na internet, aparece um pop-up dizendo "Seu computador está infectado! Instale este antivírus AGORA!" com um botão de download. O que você faz?', opts:['Instalo o antivírus indicado para proteger o PC','Fecho o pop-up pelo Task Manager e reporto ao TI','Clico em "X" no pop-up para fechar','Reinicio o computador e depois instalo'], correct:1, fb:'✅ Correto! Este é um golpe chamado "scareware". O pop-up em si pode ser inofensivo, mas o download que ele oferece é malware. Feche o navegador via Task Manager (Ctrl+Shift+Esc) e reporte ao TI.' },
+  { cat:'Redes', q:'Você está em uma loja da Leroy Merlin e precisa verificar um e-mail corporativo urgente. O Wi-Fi do shopping está disponível. O que você faz?', opts:['Conecto no Wi-Fi do shopping pois é mais rápido','Uso meus dados móveis com a VPN corporativa','Conecto no Wi-Fi mas acesso apenas sites seguros (https)','Conecto no Wi-Fi e uso normalmente'], correct:1, fb:'✅ Correto! Wi-Fi público é monitorável. Sempre use dados móveis com VPN para acessar sistemas corporativos. Se precisar usar Wi-Fi externo em emergência, a VPN é obrigatória.' },
+  { cat:'Eng. Social', q:'Um "técnico de TI" liga dizendo que detectou atividade suspeita na sua conta e precisa de acesso remoto ao seu computador para resolver. O que você faz?', opts:['Forneço acesso pois parece urgente','Desligo e contato o TI pelo número oficial da empresa','Peço o nome dele e depois permito o acesso','Dou o acesso mas fico monitorando o que ele faz'], correct:1, fb:'✅ Correto! Esta é uma tática clássica de vishing (golpe por voz). O TI legítimo da Leroy Merlin nunca liga pedindo acesso não solicitado. Sempre confirme pelo número oficial antes de qualquer ação.' },
+  { cat:'Phishing', q:'Você recebe um SMS: "Seu pacote dos Correios está retido. Clique aqui para regularizar: https://bit.ly/entrega123". Você não esperava nenhum pacote. O que você faz?', opts:['Clico para verificar do que se trata','Ignoro e deleto a mensagem','Reencaminho para amigos como aviso','Clico mas não coloco dados pessoais'], correct:1, fb:'✅ Correto! Este é smishing (phishing por SMS). Links encurtados (bit.ly) são usados para ocultar destinos maliciosos. Se precisar verificar um pacote, acesse diretamente o site dos Correios no navegador.' },
+  { cat:'Corporativo', q:'Você encontra um pen drive USB no estacionamento da loja com a etiqueta "Salários 2025". O que você faz?', opts:['Conectar para ver o conteúdo antes de decidir','Entregar ao TI sem conectar em nenhum dispositivo','Deixo onde estava para o dono pegar','Formato e uso como pen drive pessoal'], correct:1, fb:'✅ Correto! Esta é uma técnica chamada "baiting" (isca). Pen drives abandonados podem conter malware que instala automaticamente ao ser conectado. Entregue sempre ao TI sem conectar.' },
+  { cat:'Senhas', q:'Você usa a mesma senha "Leroy2020!" em todos os seus sistemas (e-mail pessoal, sistema da empresa, redes sociais). Qual o principal risco?', opts:['Nenhum risco, pois a senha é forte','Se uma conta for hackeada, todas as outras ficam comprometidas','A senha pode ser esquecida mais facilmente','O sistema pode bloquear por excesso de logins'], correct:1, fb:'✅ Correto! Reutilização de senhas é perigosíssima. Criminosos usam "credential stuffing" — testam senhas vazadas em outros serviços. Use senhas únicas com um gerenciador de senhas corporativo.' },
+  { cat:'Malware', q:'Um colega manda por WhatsApp um arquivo "proposta_fornecedor.docx". Você não esperava este arquivo. O que você faz?', opts:['Abro normalmente pois confio no colega','Confirmo com o colega por outro canal e escaneo antes de abrir','Abro apenas se tiver antivírus ativo','Mando para mais colegas para verificarem juntos'], correct:1, fb:'✅ Correto! Contas de WhatsApp de colegas podem ser comprometidas. Sempre confirme o envio de arquivos por outro canal (telefone) e escaneie com antivírus antes de abrir qualquer anexo inesperado.' },
+  { cat:'Corporativo', q:'Você está saindo para o almoço e seu computador está com uma planilha de dados de clientes aberta. O que você faz?', opts:['Deixo aberto pois volto em 1 hora','Bloqueio a tela (Win+L) e guardo documentos físicos','Apenas reduzo a janela para não aparecer na tela','Peço ao colega para monitorar'], correct:1, fb:'✅ Correto! "Mesa limpa" é uma política de segurança essencial. Sempre bloqueie o computador ao se ausentar (Win+L), mesmo por poucos minutos. Dados de clientes expostos violam a LGPD e a política interna.' },
+  { cat:'Phishing', q:'Um e-mail diz que você ganhou um vale-presente de R$500 da Leroy Merlin. Para receber, basta confirmar seus dados bancários. Você nunca participou de nenhum sorteio. O que você faz?', opts:['Preencho os dados pois parece uma promoção da empresa','Deleto o e-mail e reporto ao TI como phishing','Ligo para o atendimento Leroy Merlin para confirmar','Preencho mas com dados fictícios para testar'], correct:1, fb:'✅ Correto! Promoções que pedem dados bancários são golpes clássicos. A Leroy Merlin nunca solicita dados bancários por e-mail. Reporte ao TI para proteger outros colegas que possam receber o mesmo e-mail.' },
+  { cat:'Redes', q:'Um colega sugere instalar um programa de compartilhamento de tela gratuito encontrado online para facilitar reuniões. O que você faz?', opts:['Instalo pois facilita o trabalho','Oriento sobre as ferramentas aprovadas pelo TI (ex: Teams)','Instalo apenas no meu computador pessoal','Peço ao gestor e instalo se ele autorizar verbalmente'], correct:1, fb:'✅ Correto! Software não autorizado ("Shadow IT") representa risco real. A Leroy Merlin oferece ferramentas aprovadas e seguras (Microsoft Teams, etc.). Instalar programas não aprovados pode abrir brechas de segurança.' },
+  { cat:'Eng. Social', q:'Uma pessoa liga se identificando como auditora externa e pede a lista de usuários do sistema com seus cargos para fins de auditoria. O que você faz?', opts:['Forneço as informações pois parece uma auditorialegítima','Recuso e oriento a solicitar formalmente ao TI/Compliance','Forneço apenas nomes, sem cargos','Peço o nome e empresa dela e depois envio as informações'], correct:1, fb:'✅ Correto! Toda solicitação de dados organizacionais deve passar por processo formal, com validação pelo TI e Compliance. Atacantes frequentemente se passam por auditores para coletar informações para ataques.' },
+  { cat:'Corporativo', q:'Você percebe que ainda tem acesso ao sistema de uma loja onde trabalhou há 6 meses, mas foi transferido para outra. O que você faz?', opts:['Mantenho o acesso pois pode ser útil','Reporto ao TI para que o acesso seja revogado','Uso apenas em emergências','Ignoro pois não pretendo usar'], correct:1, fb:'✅ Correto! Acessos desnecessários representam risco (princípio do privilégio mínimo). Se sua conta for comprometida, o invasor terá acesso a sistemas que não deveriam estar acessíveis. Reporte ao TI imediatamente.' },
+  { cat:'Senhas', q:'Para criar uma senha segura, qual das opções abaixo é mais recomendada para o sistema corporativo?', opts:['LeRoy2025','senha123','!MtQ8#kR2vPx@','nomefuncionario'], correct:2, fb:'✅ Correto! A senha "!MtQ8#kR2vPx@" combina letras maiúsculas, minúsculas, números e símbolos de forma aleatória. Evite palavras do dicionário, nomes próprios e sequências previsíveis como anos.' },
+];
+
+// Tips for the tips page and quick preview
+const TIPS_CATEGORIES = [
+  { title:'🎣 Phishing & Golpes Digitais', color:'red', tips:[
+    'Sempre verifique o domínio completo do remetente do e-mail.',
+    'Passe o mouse sobre links antes de clicar para ver a URL real.',
+    'Desconfie de e-mails com urgência extrema ou ameaças.',
+    'Sites oficiais da empresa sempre terminam em .leroymerlin.com.br.',
+    'SMS com links encurtados são suspeitos — acesse o site diretamente.',
+  ]},
+  { title:'🦠 Malware & Proteção', color:'orange', tips:[
+    'Nunca instale software sem aprovação do TI.',
+    'Mantenha o antivírus corporativo sempre ativo e atualizado.',
+    'Arquivos .exe recebidos por e-mail devem ser escaneados antes de abrir.',
+    'Pop-ups de "seu computador está infectado" são sempre golpes.',
+    'Faça backup regularmente em local aprovado pelo TI.',
+  ]},
+  { title:'🔑 Senhas & Acesso', color:'blue', tips:[
+    'Use senhas com mais de 12 caracteres, misturando tudo.',
+    'Nunca compartilhe sua senha, nem com seu gestor.',
+    'Ative autenticação de dois fatores (2FA) em todas as contas.',
+    'Use um gerenciador de senhas corporativo aprovado.',
+    'Bloqueie o computador sempre que se afastar (Win+L).',
+  ]},
+  { title:'📶 Redes & Conexões', color:'green', tips:[
+    'Use VPN corporativa em qualquer rede fora da empresa.',
+    'Nunca conecte pen drives não aprovados.',
+    'Wi-Fi público = risco. Prefira dados móveis com VPN.',
+    'Confirme sempre o nome exato da rede Wi-Fi com o TI.',
+    'Impressoras em rede também podem ser hackeadas — troque a senha padrão.',
+  ]},
+  { title:'🎭 Engenharia Social', color:'purple', tips:[
+    'O TI legítimo NUNCA pede sua senha por e-mail ou telefone.',
+    'Confirme identidades por canal independente antes de fornecer dados.',
+    'Golpistas exploram emoções: urgência, medo e autoridade.',
+    'Limite informações corporativas no LinkedIn e outras redes sociais.',
+    'Visitantes desconhecidos devem ter acesso supervisionado na loja.',
+  ]},
+];
+
+// ═══════════════════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════════════════
+
+let userScore = 0;
+let completedItems = 0;
+
+// Memory state
+let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0;
+let memTimer = null, memSeconds = 0, memTotal = 0;
+
+// Quiz state
+let quizQueue = [], quizIndex = 0, quizScore = 0;
+let quizAnswered = false;
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════════
+//  BUBBLES BG
+// ═══════════════════════════════════════════════════════
+
+function createBubbles() {
+  const container = document.getElementById('bubblesContainer');
+  for (let i=0;i<18;i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = Math.random()*60+20;
+    b.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${Math.random()*15+8}s;
+      animation-delay:${Math.random()*15}s;
+      opacity:${Math.random()*0.5+0.2};
+    `;
+    container.appendChild(b);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  HOME QUICK TIPS
+// ═══════════════════════════════════════════════════════
+
+function renderQuickTips() {
+  const colors = ['red','orange','green','blue','purple'];
+  const tips = [
+    { emoji:'🎣', title:'Phishing', text:'Verifique SEMPRE o domínio do remetente antes de clicar em qualquer link de e-mail.' },
+    { emoji:'🔑', title:'Senhas', text:'Use uma senha diferente para cada sistema. Habilite 2FA sempre que disponível.' },
+    { emoji:'🛡️', title:'VPN', text:'Nunca acesse sistemas da empresa sem VPN em redes públicas ou domésticas.' },
+    { emoji:'🦠', title:'Malware', text:'Instale software apenas pelos canais aprovados pelo TI da Leroy Merlin.' },
+    { emoji:'🎭', title:'Eng. Social', text:'O TI jamais pedirá sua senha. Desconfie de solicitações urgentes de dados.' },
+  ];
+  const container = document.getElementById('quickTips');
+  container.innerHTML = tips.map((t,i) => `
+    <div class="tip-card ${colors[i]}">
+      <h4>${t.emoji} ${t.title}</h4>
+      <p>${t.text}</p>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CARDS GAME
+// ═══════════════════════════════════════════════════════
+
+function renderCards(filter='all') {
+  const data = filter==='all' ? CARDS_DATA : CARDS_DATA.filter(c=>c.cat===filter);
+  document.getElementById('cardsGrid').innerHTML = data.map(c=>`
+    <div class="flip-card" id="fc-${c.id}" onclick="flipCard(${c.id})">
+      <div class="flip-inner">
+        <div class="flip-front">
+          <div class="card-emoji">${c.emoji}</div>
+          <div class="card-title">${c.title}</div>
+          <div class="card-subtitle">${c.subtitle}</div>
+          <div class="flip-hint">👆 Clique para revelar a dica!</div>
+        </div>
+        <div class="flip-back">
+          <div class="card-emoji">${c.emoji}</div>
+          <div class="card-tip">${c.tip}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function flipCard(id) {
+  const el = document.getElementById('fc-'+id);
+  const wasFlipped = el.classList.contains('flipped');
+  el.classList.toggle('flipped');
+  if (!wasFlipped) {
+    addScore(5);
+    completedItems++;
+    updateStats();
+  }
+}
+
+function filterCards(cat, btn) {
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards(cat);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MEMORY GAME
+// ═══════════════════════════════════════════════════════
+
+function startMemory() {
+  clearInterval(memTimer);
+  memFlipped = []; memMatched = 0; memMoves = 0; memSeconds = 0;
+  document.getElementById('memMoves').textContent = '0';
+  document.getElementById('memPairs').textContent = '0';
+  document.getElementById('memTime').textContent = '0:00';
+
+  const diff = document.getElementById('memDifficulty').value;
+  const pairCount = diff==='easy' ? 8 : diff==='medium' ? 12 : 16;
+  memTotal = pairCount;
+
+  const pairs = [...MEMORY_PAIRS].sort(()=>Math.random()-0.5).slice(0, pairCount);
+  memCards = [...pairs, ...pairs].map((p,i)=>({...p, id:i, matched:false, flipped:false}));
+  // Shuffle
+  for(let i=memCards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[memCards[i],memCards[j]]=[memCards[j],memCards[i]];}
+
+  const cols = diff==='easy' ? 4 : diff==='medium' ? 4 : 4;
+  const grid = document.getElementById('memoryGrid');
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  grid.innerHTML = memCards.map((c,i)=>`
+    <div class="mem-card" id="mc-${i}" onclick="flipMemCard(${i})">
+      <div class="mem-inner">
+        <div class="mem-front">🛡️</div>
+        <div class="mem-back">
+          <span>${c.emoji}</span>
+          <small>${c.label}</small>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  memTimer = setInterval(()=>{
+    memSeconds++;
+    const m = Math.floor(memSeconds/60);
+    const s = memSeconds%60;
+    document.getElementById('memTime').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+function flipMemCard(idx) {
+  if (memFlipped.length >= 2) return;
+  if (memCards[idx].matched || memCards[idx].flipped) return;
+  memCards[idx].flipped = true;
+  document.getElementById('mc-'+idx).classList.add('flipped');
+  memFlipped.push(idx);
+
+  if (memFlipped.length === 2) {
+    memMoves++;
+    document.getElementById('memMoves').textContent = memMoves;
+    const [a,b] = memFlipped;
+    if (memCards[a].label === memCards[b].label) {
+      memCards[a].matched = true; memCards[b].matched = true;
+      document.getElementById('mc-'+a).classList.add('matched');
+      document.getElementById('mc-'+b).classList.add('matched');
+      memFlipped = [];
+      memMatched++;
+      document.getElementById('memPairs').textContent = memMatched;
+      addScore(20);
+      if (memMatched === memTotal) {
+        clearInterval(memTimer);
+        setTimeout(()=>{
+          document.getElementById('winMsg').textContent =
+            `Parabéns! ${memTotal} pares em ${memMoves} movimentos e ${document.getElementById('memTime').textContent}!`;
+          document.getElementById('winOverlay').classList.add('show');
+          completedItems++;
+          updateStats();
+        }, 600);
+      }
+    } else {
+      setTimeout(()=>{
+        memCards[a].flipped = false; memCards[b].flipped = false;
+        document.getElementById('mc-'+a).classList.remove('flipped');
+        document.getElementById('mc-'+b).classList.remove('flipped');
+        memFlipped = [];
+      }, 900);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  QUIZ GAME
+// ═══════════════════════════════════════════════════════
+
+function initQuiz() {
+  quizQueue = [...QUIZ_DATA].sort(()=>Math.random()-0.5).slice(0,15);
+  quizIndex = 0; quizScore = 0;
+  document.getElementById('quizResult').classList.remove('show');
+  document.getElementById('quizGameArea').style.display='block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizQueue[quizIndex];
+  const total = quizQueue.length;
+  document.getElementById('quizProgress').style.width = `${(quizIndex/total)*100}%`;
+  document.getElementById('quizCounter').textContent = `Pergunta ${quizIndex+1} de ${total}`;
+  document.getElementById('quizScore').textContent = quizScore;
+  document.getElementById('quizCat').textContent = q.cat;
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizNext').classList.remove('show');
+  quizAnswered = false;
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('quizOptions').innerHTML = q.opts.map((o,i)=>`
+    <button class="quiz-opt" onclick="answerQuiz(${i})" id="qo-${i}">
+      <span class="opt-letter">${letters[i]}</span>
+      ${o}
+    </button>
+  `).join('');
+}
+
+function answerQuiz(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o=>o.classList.add('disabled'));
+  opts[idx].classList.add(idx===q.correct ? 'correct' : 'wrong');
+  opts[q.correct].classList.add('correct');
+
+  const fb = document.getElementById('quizFeedback');
+  fb.textContent = q.fb;
+  fb.className = 'quiz-feedback show ' + (idx===q.correct ? 'correct-fb' : 'wrong-fb');
+
+  if (idx===q.correct) {
+    quizScore += 10;
+    addScore(10);
+    document.getElementById('quizScore').textContent = quizScore;
+  }
+  document.getElementById('quizNext').classList.add('show');
+}
+
+function nextQuestion() {
+  quizIndex++;
+  if (quizIndex >= quizQueue.length) {
+    showQuizResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showQuizResult() {
+  document.getElementById('quizGameArea').style.display='none';
+  const result = document.getElementById('quizResult');
+  result.classList.add('show');
+  const total = quizQueue.length * 10;
+  const pct = Math.round((quizScore/total)*100);
+  document.getElementById('resultScore').textContent = `${quizScore}/${total} pts`;
+  let emoji='🏆', msg='';
+  if(pct>=90){emoji='🌟';msg='Extraordinário! Você é um guardião da segurança digital!';}
+  else if(pct>=70){emoji='🏆';msg='Muito bem! Continue aprendendo para se tornar um especialista!';}
+  else if(pct>=50){emoji='💪';msg='Bom progresso! Revise as dicas para melhorar ainda mais.';}
+  else{emoji='📚';msg='Continue treinando! Cada tentativa te deixa mais seguro.';}
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultMsg').textContent = msg;
+  completedItems++;
+  updateStats();
+}
+
+function restartQuiz() {
+  initQuiz();
+}
+
+// ═══════════════════════════════════════════════════════
+//  TIPS PAGE
+// ═══════════════════════════════════════════════════════
+
+function renderAllTips() {
+  const container = document.getElementById('allTipsContent');
+  container.innerHTML = TIPS_CATEGORIES.map(cat=>`
+    <div class="section-label">${cat.title}</div>
+    <div class="tips-grid" style="margin-bottom:2rem;">
+      ${cat.tips.map(t=>`
+        <div class="tip-card ${cat.color}">
+          <p>✅ ${t}</p>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SCORE & STATS
+// ═══════════════════════════════════════════════════════
+
+function addScore(pts) {
+  userScore += pts;
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('totalScore').textContent = userScore;
+  document.getElementById('completedItems').textContent = completedItems;
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  createBubbles();
+  renderQuickTips();
+  renderCards();
+  startMemory();
+  initQuiz();
+  renderAllTips();
+});
+</script>
+</body>
+</html>
