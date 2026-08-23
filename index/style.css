@@ -1194,3 +1194,156 @@ footer {
   0%,100% { opacity: .2; transform: scale(.6) rotate(0deg); }
   50%      { opacity: 1;  transform: scale(1.2) rotate(180deg); }
 }
+
+/* ============================================================
+   QUIZ LEVEL SYSTEM — Estilos do seletor de níveis
+   ============================================================ */
+ 
+/* Seletor de nível */
+.level-selector {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 2rem;
+}
+.level-card {
+  flex: 1; min-width: 200px; max-width: 260px;
+  padding: 1.8rem 1.4rem;
+  border-radius: var(--radius-xl, 20px);
+  text-align: center; cursor: pointer;
+  transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  border: 2px solid transparent;
+  position: relative; overflow: hidden;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.level-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 46%;
+  background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.03) 100%);
+  border-radius: inherit; pointer-events: none;
+}
+.level-card:hover:not(.locked) {
+  transform: translateY(-8px) scale(1.03);
+  filter: brightness(1.04) saturate(1.1);
+}
+.level-card.locked { opacity: 0.52; cursor: not-allowed; filter: grayscale(0.45); }
+ 
+.level-card.easy-card {
+  background: linear-gradient(160deg, rgba(216,248,200,.88) 0%, rgba(184,238,170,.75) 55%, rgba(150,222,128,.65) 100%);
+  border: 1.5px solid rgba(255,255,255,.90); border-top-color: rgba(255,255,255,.98);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px rgba(80,180,40,.20);
+}
+.level-card.medium-card {
+  background: linear-gradient(160deg, rgba(255,240,192,.88) 0%, rgba(255,224,128,.75) 55%, rgba(255,200,64,.65) 100%);
+  border: 1.5px solid rgba(255,255,255,.90); border-top-color: rgba(255,255,255,.98);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px rgba(220,160,0,.20);
+}
+.level-card.hard-card {
+  background: linear-gradient(160deg, rgba(255,216,208,.88) 0%, rgba(255,176,160,.75) 55%, rgba(255,136,120,.65) 100%);
+  border: 1.5px solid rgba(255,255,255,.90); border-top-color: rgba(255,255,255,.98);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 6px 24px rgba(220,80,60,.20);
+}
+ 
+.level-icon { font-size: 2.8rem; margin-bottom: .7rem; display: block; }
+.level-card h3 {
+  font-family: 'Exo 2','Baloo 2',sans-serif;
+  font-size: 1.2rem; font-weight: 800; margin-bottom: .4rem;
+  color: var(--text-dark, #14283c);
+  text-shadow: 0 1px 2px rgba(255,255,255,.7);
+}
+.level-card p {
+  font-size: .82rem; color: var(--text-mid, #3d5870);
+  line-height: 1.55; text-shadow: 0 1px 2px rgba(255,255,255,.6);
+}
+.level-badge {
+  display: inline-block; margin-top: .8rem;
+  padding: .25rem .8rem; border-radius: 50px;
+  font-size: .72rem; font-weight: 800;
+  background: rgba(255,255,255,.65);
+  border: 1px solid rgba(255,255,255,.92);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset;
+}
+.lock-icon {
+  position: absolute; top: .8rem; right: .8rem;
+  font-size: 1.2rem; opacity: .7;
+}
+.unlock-notice {
+  display: inline-block; margin-top: .7rem;
+  font-size: .72rem; font-weight: 700; color: #7090a8;
+  background: rgba(255,255,255,.55); padding: .2rem .7rem;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,.8);
+}
+ 
+/* Badge de nível ativo (durante o jogo) */
+.level-progress-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.2rem; flex-wrap: wrap;
+}
+.level-badge-active {
+  padding: .35rem 1rem; border-radius: 50px;
+  font-size: .78rem; font-weight: 800;
+  display: flex; align-items: center; gap: .4rem;
+  border: 1px solid transparent;
+}
+.level-badge-active.easy   { background: rgba(216,248,200,.82); color: #2a7010; border-color: #6ec860; }
+.level-badge-active.medium { background: rgba(255,240,192,.82); color: #7a5000; border-color: #f0a820; }
+.level-badge-active.hard   { background: rgba(255,216,208,.82); color: #7a1010; border-color: #e86060; }
+ 
+/* Mapa de progresso visual */
+.level-map {
+  display: flex; align-items: center; gap: .5rem;
+  justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.level-node {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  border: 1.5px solid rgba(255,255,255,.80);
+  border-top-color: rgba(255,255,255,.97);
+  transition: all .3s;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 3px 10px rgba(0,0,0,.08);
+}
+.level-node.done   {
+  background: linear-gradient(180deg, #a0e880 0%, #60c840 48%, #40a820 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(80,180,40,.30);
+}
+.level-node.active {
+  background: linear-gradient(180deg, #ffe880 0%, #ffc020 48%, #f09000 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(220,160,0,.30);
+  animation: levelPulse 1.5s ease infinite;
+}
+.level-node.locked {
+  background: linear-gradient(180deg, rgba(220,235,255,.55) 0%, rgba(190,215,255,.38) 100%);
+  filter: grayscale(1); opacity: .5;
+}
+@keyframes levelPulse {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+.level-connector {
+  height: 3px; width: 36px; border-radius: 3px;
+  background: rgba(160,200,240,.22);
+}
+.level-connector.done {
+  background: linear-gradient(90deg, #60c840, #40a820);
+}
+ 
+/* Estrelas de resultado */
+.result-stars {
+  display: flex; justify-content: center; gap: .4rem;
+  font-size: 2rem; margin: .8rem 0;
+}
+ 
+/* Aviso de desbloqueio */
+.result-unlock-notice {
+  display: inline-block; padding: .6rem 1.4rem;
+  border-radius: 50px; font-size: .88rem; font-weight: 700;
+  background: linear-gradient(180deg, rgba(180,248,170,.90) 0%, rgba(140,228,130,.75) 100%);
+  border: 1.5px solid rgba(255,255,255,.90); border-top-color: rgba(255,255,255,.98);
+  color: #1a5010; margin: .5rem 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 4px 14px rgba(80,200,40,.20);
+  animation: pulseUnlock 1.6s ease infinite;
+}
+@keyframes pulseUnlock {
+  0%,100% { box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 4px 14px rgba(80,200,40,.20); }
+  50%      { box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 6px 22px rgba(80,200,40,.45); }
+}
+ 

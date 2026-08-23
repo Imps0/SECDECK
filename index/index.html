@@ -50,7 +50,7 @@
     <!-- Stats -->
     <div class="stats-bar">
       <div class="stat-pill glass">
-        <div class="num" id="totalCards">60</div>
+        <div class="num" id="totalCards">122</div>
         <div class="lbl">Cards de Aprendizado</div>
       </div>
       <div class="stat-pill glass">
@@ -74,7 +74,7 @@
         <span class="game-icon">🃏</span>
         <h3>Cards de Aprendizado</h3>
         <p>Descubra dicas reais de segurança! Clique nas cartas para revelar conselhos valiosos sobre phishing, trojans, spyware e muito mais.</p>
-        <span class="game-tag">60 cards • Iniciante a Avançado</span>
+        <span class="game-tag">122 cards • Iniciante a Avançado</span>
       </div>
       <div class="game-card glass teal" onclick="showPage('memory')">
         <span class="game-icon">🧩</span>
@@ -86,7 +86,7 @@
         <span class="game-icon">❓</span>
         <h3>Questionário Adaptativo</h3>
         <p>Situações reais do cotidiano corporativo! Responda e saiba se você faria a escolha certa diante de uma ameaça.</p>
-        <span class="game-tag">20 perguntas • Situacional</span>
+        <span class="game-tag">60 perguntas • 3 níveis • Situacional</span>
       </div>
     </div>
 
@@ -110,6 +110,8 @@
       <button class="pill" onclick="filterCards('redes', this)">📶 Redes</button>
       <button class="pill" onclick="filterCards('social', this)">🎭 Eng. Social</button>
       <button class="pill" onclick="filterCards('corporativo', this)">🏢 Corporativo</button>
+      <button class="pill" onclick="filterCards('dispositivos', this)">💻 Dispositivos</button>
+      <button class="pill" onclick="filterCards('infantil', this)">👨‍👩‍👧 Família</button>
     </div>
 
     <div class="cards-grid" id="cardsGrid"></div>
@@ -153,16 +155,69 @@
   <div class="page" id="page-quiz">
     <div class="page-header">
       <h2>❓ Questionário de Segurança</h2>
-      <p>Situações reais do dia a dia corporativo. Escolha a opção mais segura!</p>
+      <p>Complete cada nível para desbloquear o próximo. Você consegue chegar ao Difícil?</p>
     </div>
-
+ 
     <div class="quiz-container">
-      <div id="quizGameArea">
+ 
+      <!-- QUIZ LEVEL SCREEN — Tela de seleção de nível com mapa de progresso -->
+      <div id="quizLevelScreen">
+ 
+        <!-- Mapa de progresso visual -->
+        <div class="level-map" id="levelMap">
+          <div class="level-node active" id="node-easy">🌱</div>
+          <div class="level-connector" id="conn-easy-medium"></div>
+          <div class="level-node locked" id="node-medium">⚡</div>
+          <div class="level-connector" id="conn-medium-hard"></div>
+          <div class="level-node locked" id="node-hard">🔥</div>
+        </div>
+ 
+        <div class="level-selector">
+          <!-- Fácil: desbloqueado por padrão -->
+          <div class="level-card easy-card glass" id="card-easy" onclick="startLevel('easy')">
+            <span class="level-icon">🌱</span>
+            <h3>Nível Fácil</h3>
+            <p>Conceitos básicos de segurança digital. Ideal para começar!</p>
+            <span class="level-badge">20 perguntas · +10 pts cada</span>
+          </div>
+          <!-- Médio: bloqueado até concluir Fácil c/ ≥60% -->
+          <div class="level-card medium-card glass locked" id="card-medium" onclick="startLevel('medium')">
+            <div class="lock-icon" id="lock-medium">🔒</div>
+            <span class="level-icon">⚡</span>
+            <h3>Nível Médio</h3>
+            <p>Cenários corporativos reais com mais nuances e armadilhas.</p>
+            <span class="level-badge">20 perguntas · +20 pts cada</span>
+            <div class="unlock-notice" id="notice-medium">Complete o Fácil com ≥60% para desbloquear</div>
+          </div>
+          <!-- Difícil: bloqueado até concluir Médio c/ ≥60% -->
+          <div class="level-card hard-card glass locked" id="card-hard" onclick="startLevel('hard')">
+            <div class="lock-icon" id="lock-hard">🔒</div>
+            <span class="level-icon">🔥</span>
+            <h3>Nível Difícil</h3>
+            <p>Situações técnicas complexas, ambíguas e de alta pressão.</p>
+            <span class="level-badge">20 perguntas · +30 pts cada</span>
+            <div class="unlock-notice" id="notice-hard">Complete o Médio com ≥60% para desbloquear</div>
+          </div>
+        </div>
+      </div>
+      <!--QUIZ LEVEL SCREEN -->
+ 
+      <!-- Área do jogo (oculta até selecionar nível) -->
+      <div id="quizGameArea" style="display:none;">
+        <!--QUIZ LEVEL HEADER — Badge do nível ativo e botão voltar -->
+        <div class="level-progress-header">
+          <span class="level-badge-active easy" id="activeLevelBadge">🌱 Fácil</span>
+          <button class="btn btn-ghost"
+            style="font-size:.8rem;padding:.4rem .9rem;"
+            onclick="backToLevelSelect()">← Trocar Nível</button>
+        </div>
+        <!--QUIZ LEVEL HEADER -->
+ 
         <div class="quiz-progress-bar">
           <div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div>
         </div>
         <div class="quiz-meta">
-          <span id="quizCounter">Pergunta 1 de 15</span>
+          <span id="quizCounter">Pergunta 1 de 20</span>
           <span>⭐ Pontos: <span id="quizScore">0</span></span>
         </div>
         <div class="quiz-card glass" id="quizCard">
@@ -173,15 +228,27 @@
           <button class="quiz-next" id="quizNext" onclick="nextQuestion()">Próxima →</button>
         </div>
       </div>
+ 
+      <!-- Tela de resultado -->
       <div class="quiz-result glass" id="quizResult">
         <div class="result-emoji" id="resultEmoji">🏆</div>
+        <!-- RESULT STARS — Estrelas por desempenho -->
+        <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+        <!--  RESULT STARS -->
         <div class="result-score" id="resultScore">0 pts</div>
         <div class="result-msg" id="resultMsg">Você completou o questionário!</div>
+        <!--  UNLOCK NOTICE — Aviso animado  -->
+        <div class="result-unlock-notice" id="unlockNotice" style="display:none;">
+          🎉 Novo nível desbloqueado!
+        </div>
+        <!-- UNLOCK NOTICE -->
         <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem;">
-          <button class="btn btn-primary" onclick="restartQuiz()">🔄 Jogar Novamente</button>
+          <button class="btn btn-primary" onclick="restartCurrentLevel()">🔄 Repetir Nível</button>
+          <button class="btn btn-ghost" onclick="backToLevelSelect()">📋 Ver Níveis</button>
           <button class="btn btn-ghost" onclick="showPage('tips')">💡 Ver Dicas</button>
         </div>
       </div>
+ 
     </div>
   </div>
 
@@ -221,44 +288,151 @@
 // ═══════════════════════════════════════════════════════
 
 const CARDS_DATA = [
-  // PHISHING
+  // PHISHING (IDs 1-6)
   { id:1, cat:'phishing', emoji:'🎣', title:'Phishing por E-mail', subtitle:'Como reconhecer', tip:'Sempre verifique o remetente completo (não só o nome). E-mails legítimos do banco ou RH da empresa nunca pedem sua senha por e-mail. Em caso de dúvida, ligue diretamente para o setor.' },
   { id:2, cat:'phishing', emoji:'🔗', title:'Links Suspeitos', subtitle:'Antes de clicar', tip:'Passe o mouse sobre o link antes de clicar. Se a URL não corresponder ao site esperado (ex: "leroy-merlin-rh.xyz" em vez de "leroymerlin.com.br"), NÃO clique. Denuncie ao TI.' },
   { id:3, cat:'phishing', emoji:'📧', title:'E-mails Urgentes', subtitle:'Alarme de manipulação', tip:'"Sua conta será bloqueada em 24h!" é uma tática clássica de phishing. Empresas legítimas raramente impõem urgência extrema. Respire fundo e verifique a fonte antes de agir.' },
   { id:4, cat:'phishing', emoji:'📱', title:'Smishing (SMS)', subtitle:'Phishing por mensagem', tip:'Golpes via SMS (smishing) imitam entregas de pacotes, bancos ou Receita Federal. Nunca clique em links de SMS não solicitados. Acesse o site oficial diretamente no navegador.' },
   { id:5, cat:'phishing', emoji:'🎭', title:'Spear Phishing', subtitle:'Ataque personalizado', tip:'Golpistas pesquisam suas redes sociais para criar e-mails personalizados ("Olá João, conforme falamos na reunião de segunda..."). Desconfie mesmo de e-mails que parecem conhecê-lo.' },
   { id:6, cat:'phishing', emoji:'🌐', title:'Sites Falsos', subtitle:'URL confiável?', tip:'Verifique sempre se o site começa com "https://" e tem um cadeado. Sites falsos usam domínios similares: "1eroymerlin.com" em vez de "leroymerlin.com.br". Salve os sites oficiais nos favoritos.' },
-  // MALWARE
+  // MALWARE (IDs 7-12)
   { id:7, cat:'malware', emoji:'🦠', title:'Trojans', subtitle:'O cavalo de Tróia digital', tip:'Trojans se disfarçam de programas legítimos (jogos, atualizações, ferramentas). Nunca instale software de fontes desconhecidas. Use apenas a Central de Software aprovada pelo TI.' },
   { id:8, cat:'malware', emoji:'👁️', title:'Spyware', subtitle:'Vigilância silenciosa', tip:'Spyware monitora suas atividades sem que você saiba: captura senhas, histórico de navegação e até conversas. Mantenha seu antivírus atualizado e evite instalar extensões de fontes desconhecidas.' },
   { id:9, cat:'malware', emoji:'💰', title:'Ransomware', subtitle:'Sequestro de dados', tip:'O ransomware criptografa seus arquivos e exige resgate. A melhor defesa: backups regulares offline, não clicar em links suspeitos e manter o Windows/antivírus atualizado. NUNCA pague o resgate.' },
   { id:10, cat:'malware', emoji:'📎', title:'Anexos Perigosos', subtitle:'Antes de abrir', tip:'Arquivos .exe, .bat, .vbs e até .docx com macros podem conter malware. Antes de abrir qualquer anexo, verifique com o remetente por outro canal (telefone) e escaneie com o antivírus.' },
   { id:11, cat:'malware', emoji:'🖱️', title:'Keyloggers', subtitle:'Captura de teclas', tip:'Keyloggers registram tudo que você digita, incluindo senhas. Use autenticação de dois fatores (2FA) e prefira teclados virtuais para dados sensíveis em computadores compartilhados.' },
   { id:12, cat:'malware', emoji:'🔄', title:'Atualizações Falsas', subtitle:'Pop-up armadilha', tip:'Pop-ups pedindo para "Atualizar seu Flash Player" ou "Seu PC está infectado, clique aqui!" são golpes. Feche o navegador e atualize programas somente pelos canais oficiais do fabricante.' },
-  // SENHAS
+  // SENHAS (IDs 13-17)
   { id:13, cat:'senha', emoji:'🔑', title:'Senhas Fortes', subtitle:'Como criar', tip:'Use pelo menos 12 caracteres combinando maiúsculas, minúsculas, números e símbolos. Uma frase como "LeRoy@Merlin#2025!" é segura e fácil de lembrar. Evite nomes de pessoas, datas ou "123456".' },
   { id:14, cat:'senha', emoji:'🔒', title:'Senhas Únicas', subtitle:'Uma por site', tip:'Nunca reutilize senhas! Se uma conta for comprometida, as outras ficarão expostas. Use um gerenciador de senhas aprovado pelo TI (como Bitwarden ou LastPass empresarial).' },
   { id:15, cat:'senha', emoji:'📲', title:'Autenticação 2FA', subtitle:'Camada extra', tip:'Ative o segundo fator de autenticação (2FA) em todas as contas corporativas. Mesmo que alguém descubra sua senha, não conseguirá entrar sem o código temporário do seu celular.' },
   { id:16, cat:'senha', emoji:'🚫', title:'Compartilhar Senhas', subtitle:'Nunca!', tip:'Jamais compartilhe sua senha corporativa, nem com colegas, gestores ou suporte técnico. O TI legítimo NUNCA pede sua senha. Se alguém solicitar, reporte imediatamente ao superior.' },
   { id:17, cat:'senha', emoji:'🔄', title:'Troca Periódica', subtitle:'Boas práticas', tip:'Troque suas senhas a cada 90 dias ou imediatamente após suspeitar de comprometimento. Habilite notificações de login para identificar acessos não autorizados às suas contas.' },
-  // REDES
+  // REDES (ids 18-22)
   { id:18, cat:'redes', emoji:'📶', title:'Wi-Fi Público', subtitle:'Risco em todo lugar', tip:'Wi-Fi público de shoppings, aeroportos e cafés pode ser monitorado. Nunca acesse sistemas corporativos sem VPN em redes públicas. Prefira os dados móveis para trabalho remoto urgente.' },
   { id:19, cat:'redes', emoji:'🔌', title:'USB Malicioso', subtitle:'Pen drive armadilha', tip:'Nunca conecte pen drives encontrados no chão ou recebidos de estranhos — é uma técnica real usada por hackers (baiting). Dispositivos USB devem ser aprovados pelo TI antes de uso.' },
   { id:20, cat:'redes', emoji:'🛡️', title:'VPN Corporativa', subtitle:'Túnel seguro', tip:'Sempre use a VPN da empresa ao trabalhar remotamente. A VPN criptografa sua conexão, impedindo que interceptadores vejam seus dados. Nunca use VPNs pessoais não aprovadas.' },
   { id:21, cat:'redes', emoji:'🖨️', title:'Impressoras em Rede', subtitle:'Ponto cego da segurança', tip:'Impressoras de rede são alvos comuns de ataque. Não deixe documentos sensíveis na bandeja. Troque a senha padrão de impressoras e atualize o firmware regularmente.' },
   { id:22, cat:'redes', emoji:'📡', title:'Redes Wi-Fi Gêmeas', subtitle:'Evil Twin Attack', tip:'Hackers criam redes Wi-Fi com nomes similares ao da empresa ("Leroy_Merlin_2" em vez de "Leroy_Merlin"). Confirme sempre o nome exato da rede com o TI antes de conectar.' },
-  // SOCIAL
+  // SOCIAL (IDs 28-27)
   { id:23, cat:'social', emoji:'📞', title:'Vishing (Golpe por Voz)', subtitle:'Suporte falso', tip:'"Aqui é o suporte técnico da Microsoft, detectamos vírus no seu PC." Este é um golpe clássico de vishing. A Microsoft, banco ou TI nunca ligam pedindo acesso remoto não solicitado.' },
   { id:24, cat:'social', emoji:'🎭', title:'Pretexting', subtitle:'Identidade falsa', tip:'Atacantes se passam por funcionários, fornecedores ou auditores para obter informações. Sempre confirme a identidade de visitantes e solicitantes por canal oficial antes de fornecer dados.' },
   { id:25, cat:'social', emoji:'🤝', title:'Baiting Físico', subtitle:'Isca no mundo real', tip:'Encontrou um pen drive ou QR code em lugar suspeito? Pode ser uma armadilha (baiting). Entregue ao TI sem conectar. Reporte etiquetas e adesivos estranhos nos equipamentos da empresa.' },
   { id:26, cat:'social', emoji:'🧠', title:'Manipulação Psicológica', subtitle:'Como funciona', tip:'Engenharia social explora emoções: medo ("sua conta será bloqueada"), ganância ("você ganhou um prêmio") e autoridade ("é o diretor pedindo"). Reconheça o gatilho emocional e desacelere.' },
   { id:27, cat:'social', emoji:'📸', title:'Redes Sociais', subtitle:'Exposição de dados', tip:'Informações públicas nas redes sociais alimentam ataques de spear phishing. Limite o que você compartilha publicamente: cargo, rotina, projetos da empresa e informações de colegas.' },
-  // CORPORATIVO
+  // CORPORATIVO (IDs 28-32)
   { id:28, cat:'corporativo', emoji:'🏢', title:'Mesa Limpa', subtitle:'Política essencial', tip:'Ao sair da mesa, bloqueie o computador (Win+L) e guarde documentos sensíveis. Impressões com dados de clientes ou colaboradores devem ser destruídas na trituradora, não jogadas na lixeira.' },
   { id:29, cat:'corporativo', emoji:'📋', title:'Política de Acesso', subtitle:'Privilégio mínimo', tip:'Solicite apenas os acessos necessários para sua função. Privilégios excessivos aumentam o risco em caso de comprometimento da conta. Informe ao TI quando mudar de função ou projeto.' },
   { id:30, cat:'corporativo', emoji:'📊', title:'Dados de Clientes (LGPD)', subtitle:'Sua responsabilidade', tip:'Dados de clientes da Leroy Merlin são protegidos pela LGPD. Não compartilhe planilhas com dados pessoais por e-mail ou WhatsApp pessoal. Use apenas canais corporativos aprovados.' },
   { id:31, cat:'corporativo', emoji:'💻', title:'Shadow IT', subtitle:'Software não autorizado', tip:'Instalar software não autorizado (mesmo gratuito) coloca a rede em risco. Programas como "ferramentas de PDF online" podem capturar documentos confidenciais. Use apenas o catálogo do TI.' },
   { id:32, cat:'corporativo', emoji:'🔔', title:'Reporte de Incidentes', subtitle:'Não hesite!', tip:'Se suspeitar de um ataque ou incidente, reporte imediatamente ao TI via canal oficial. Cada hora de atraso pode ampliar o impacto. Não existe reporte "desnecessário" — melhor prevenir!' },
+  // TESTANDO NOVOS CARDS — (IDs 33–122)
+ 
+  // PHISHING AVANÇADO (IDs 33–47)
+  { id:33, cat:'phishing', emoji:'📋', title:'Clone Phishing', subtitle:'Cópia exata de e-mail', tip:'Atacantes copiam um e-mail legítimo que você já recebeu, trocam apenas o link ou anexo e reenviam. Compare SEMPRE com a mensagem original antes de clicar em qualquer e-mail "reenviado".' },
+  { id:34, cat:'phishing', emoji:'🐋', title:'Whaling / CEO Fraud', subtitle:'Ataque ao alto escalão', tip:'Golpes direcionados a diretores para aprovar transferências urgentes (BEC). Nunca realize transações financeiras baseadas em pedido exclusivamente por e-mail — confirme por voz diretamente.' },
+  { id:35, cat:'phishing', emoji:'🌿', title:'Pharming', subtitle:'Redirecionamento de DNS', tip:'O pharming altera configurações de DNS para redirecionar a URLs legítimas para sites falsos, mesmo sem você digitar errado. Use sempre o DNS corporativo e atualize o firmware do roteador.' },
+  { id:36, cat:'phishing', emoji:'🔤', title:'Homograph Attack', subtitle:'Letras idênticas, sites falsos', tip:'Domínios com caracteres cirílicos ou gregos parecem idênticos ao original: "lerоymerlin.com" usa um "о" cirílico. Verifique a URL caractere a caractere em operações sensíveis.' },
+  { id:37, cat:'phishing', emoji:'📷', title:'QRLjacking', subtitle:'QR Code malicioso', tip:'QR codes em folhetos, cartazes ou e-mails podem redirecionar para sites falsos. Nunca escaneie QR codes de fontes desconhecidas. Ao escanear, confirme a URL antes de clicar em qualquer botão.' },
+  { id:38, cat:'phishing', emoji:'📅', title:'Phishing por Calendário', subtitle:'Convite de reunião falso', tip:'Atacantes enviam convites de reunião pelo Google Calendar ou Outlook com links maliciosos no campo de descrição. Rejeite convites de endereços externos desconhecidos e reporte ao TI.' },
+  { id:39, cat:'phishing', emoji:'🤖', title:'Deepfake de Voz', subtitle:'IA imitando seu chefe', tip:'Tecnologia de IA consegue imitar vozes de gestores com amostras de áudio públicas. Se receber ligação "do diretor" pedindo ação financeira urgente, confirme por e-mail corporativo ou pessoalmente.' },
+  { id:40, cat:'phishing', emoji:'💬', title:'Phishing por DMs', subtitle:'Redes sociais falsas', tip:'Contas falsas no LinkedIn, Instagram e WhatsApp simulam colegas ou clientes para obter dados. Nunca compartilhe credenciais ou informações sigilosas via mensagens diretas em redes sociais.' },
+  { id:41, cat:'phishing', emoji:'🎧', title:'Angler Phishing', subtitle:'Suporte falso em redes', tip:'Golpistas monitoram reclamações nas redes sociais e respondem se passando pelo suporte oficial. O suporte legítimo da Leroy Merlin nunca pede senha ou acesso remoto via DM.' },
+  { id:42, cat:'phishing', emoji:'💼', title:'LinkedIn Phishing', subtitle:'Oferta de emprego falsa', tip:'"Você foi selecionado para uma vaga incrível! Preencha este formulário." Eles usam seu perfil do LinkedIn para criar abordagens convincentes e roubar dados. Confirme pela empresa oficial.' },
+  { id:43, cat:'phishing', emoji:'📄', title:'PDF com Formulário Falso', subtitle:'Armadilha em documento', tip:'PDFs com campos de formulário colhem credenciais quando submetidos a servidores dos atacantes. Nunca preencha formulários de PDFs recebidos sem confirmar a origem por telefone.' },
+  { id:44, cat:'phishing', emoji:'🔁', title:'Senha Expirada Falsa', subtitle:'Urgência de renovação', tip:'"Sua senha expira em 2 horas!" é uma isca clássica. O portal corporativo tem processo oficial — nunca renove sua senha por link de e-mail externo. Acesse o sistema diretamente.' },
+  { id:45, cat:'phishing', emoji:'💳', title:'Boleto Falso', subtitle:'Phishing financeiro', tip:'Boletos bancários falsificados trocam os dados do beneficiário. Sempre confira o CNPJ e o nome antes de pagar. Use os portais oficiais do banco para gerar segunda via.' },
+  { id:46, cat:'phishing', emoji:'☁️', title:'Compartilhamento Falso', subtitle:'OneDrive/Drive falsos', tip:'"Fulano compartilhou um arquivo com você" pode redirecionar para página de login falsa. Acesse sempre o OneDrive ou Google Drive diretamente no navegador, nunca pelo link do e-mail.' },
+  { id:47, cat:'phishing', emoji:'🖥️', title:'Spoofing de Remetente', subtitle:'Seu próprio e-mail como remetente', tip:'Técnica de spoofing faz parecer que o e-mail veio do seu próprio endereço. É usada para enganar filtros de spam. E-mail com remetente igual ao seu solicitando dados é sempre golpe.' },
+ 
+  // ── MALWARE AVANÇADO (IDs 48–61) ────────────────────────────────────────────
+  { id:48, cat:'malware', emoji:'🌑', title:'Rootkit', subtitle:'Escondido no sistema', tip:'Rootkits se instalam no nível do sistema operacional e ficam invisíveis para antivírus comuns. A melhor defesa é não instalar software não autorizado e manter o Secure Boot ativado.' },
+  { id:49, cat:'malware', emoji:'🪱', title:'Worm', subtitle:'Auto-propagação em rede', tip:'Worms se replicam automaticamente por redes sem precisar de ação humana. Um único PC infectado pode comprometer centenas de máquinas em minutos. Isole imediatamente ao detectar.' },
+  { id:50, cat:'malware', emoji:'👻', title:'Fileless Malware', subtitle:'Malware sem arquivo', tip:'Fileless malware existe apenas na memória RAM — não cria arquivos no disco, tornando-o invisível ao antivírus tradicional. Requer solução EDR corporativa e monitoramento de processos.' },
+  { id:51, cat:'malware', emoji:'⛏️', title:'Cryptojacker', subtitle:'Minerador oculto', tip:'Cryptojackers usam seu processador secretamente para minerar criptomoedas. Sintomas: computador lento, ventilador alto, CPU alta sem motivo. Reporte ao TI se perceber esses sinais.' },
+  { id:52, cat:'malware', emoji:'🤖', title:'Botnet', subtitle:'Computador zumbi', tip:'Seu computador pode ser controlado remotamente para atacar outros sistemas sem você saber. Manter sistema e antivírus atualizados e não instalar software desconhecido reduz esse risco.' },
+  { id:53, cat:'malware', emoji:'📝', title:'Macro Malware', subtitle:'Código oculto em Office', tip:'Documentos Word/Excel com macros habilitadas podem executar código malicioso automaticamente. NUNCA clique em "Habilitar Conteúdo" em documentos recebidos de fontes externas.' },
+  { id:54, cat:'malware', emoji:'🕹️', title:'RAT — Acesso Remoto', subtitle:'Controle total do atacante', tip:'RATs dão ao atacante controle completo: veem sua tela, acessam arquivos, ativam câmera e microfone. Antivírus atualizado e não instalar software desconhecido são as principais defesas.' },
+  { id:55, cat:'malware', emoji:'👀', title:'Stalkerware', subtitle:'Vigilância no celular', tip:'Stalkerware é instalado em celulares para monitorar localização, mensagens e chamadas sem o dono saber. Suspeita de instalação? Faça redefinição de fábrica e reinstale apenas apps oficiais.' },
+  { id:56, cat:'malware', emoji:'🏗️', title:'Supply Chain Attack', subtitle:'Fornecedor comprometido', tip:'Atacantes infectam software de fornecedor confiável: ao instalar atualização legítima, você instala malware. Prefira fornecedores com certificações de segurança e monitore comportamentos pós-atualização.' },
+  { id:57, cat:'malware', emoji:'📦', title:'Malware em PDF', subtitle:'Documento armado', tip:'PDFs podem conter JavaScript malicioso explorando vulnerabilidades do leitor. Use sempre a versão mais atualizada do Adobe Reader ou prefira leitores alternativos com histórico de segurança.' },
+  { id:58, cat:'malware', emoji:'🖼️', title:'Drive-by Download', subtitle:'Download sem querer', tip:'Visitar um site malicioso pode iniciar download automático de malware. Use bloqueador de pop-ups, mantenha o navegador atualizado e evite sites suspeitos na rede corporativa.' },
+  { id:59, cat:'malware', emoji:'📢', title:'Adware Malicioso', subtitle:'Anúncios como vetor', tip:'Adware malicioso instala outros programas sem permissão. Extensões de navegador não aprovadas são vetores comuns. Revise e remova extensões desnecessárias regularmente.' },
+  { id:60, cat:'malware', emoji:'🔍', title:'Spear Ransomware', subtitle:'Sequestro direcionado', tip:'Ransomware moderno é direcionado: atacantes estudam a empresa antes de agir, criptografando backups também. A defesa são backups offline testados regularmente e treinamento da equipe.' },
+  { id:61, cat:'malware', emoji:'⚙️', title:'PUP — Programas Indesejados', subtitle:'Inofensivo? Nem sempre', tip:'PUPs (Potentially Unwanted Programs) chegam embutidos em instaladores "gratuitos". Sempre escolha instalação personalizada e desmarque programas extras. Use apenas o catálogo aprovado pelo TI.' },
+ 
+  // ── SENHAS AVANÇADO (IDs 62–71) ─────────────────────────────────────────────
+  { id:62, cat:'senha', emoji:'📖', title:'Passphrase', subtitle:'Frase como senha forte', tip:'Uma frase longa é mais segura que senha complexa curta: "Eu@gosto#de#Segurança!2025" tem 26 caracteres, é fácil de lembrar e difícil de quebrar. Combine palavras aleatórias com símbolos.' },
+  { id:63, cat:'senha', emoji:'🗄️', title:'Gerenciador de Senhas', subtitle:'Como usar corretamente', tip:'Gerenciadores como Bitwarden geram e armazenam senhas únicas por site. Você precisa lembrar apenas a senha mestre — que deve ser extremamente forte, única e nunca reutilizada.' },
+  { id:64, cat:'senha', emoji:'🌈', title:'Rainbow Table', subtitle:'Tabela de hashes', tip:'Rainbow tables são bancos de hashes de senhas comuns. Para se proteger, use senhas longas e únicas. O "salting" do servidor corporativo adiciona outra camada de proteção.' },
+  { id:65, cat:'senha', emoji:'💪', title:'Brute Force', subtitle:'Tentativa e erro automatizado', tip:'Bots testam milhões de combinações por segundo. Uma senha de 8 caracteres é quebrada em horas. Com 16+ caracteres aleatórios, levaria séculos. Tamanho é a principal proteção.' },
+  { id:66, cat:'senha', emoji:'🌊', title:'Password Spraying', subtitle:'Spraying em múltiplas contas', tip:'Em vez de testar muitas senhas numa conta (e ser bloqueado), atacantes testam uma senha em milhares de contas. Senhas únicas e alertas de login são a proteção ideal.' },
+  { id:67, cat:'senha', emoji:'📲', title:'Tipos de MFA', subtitle:'Além do SMS', tip:'SMS é o MFA mais fraco (interceptável via SIM Swap). Prefira apps autenticadores (Google Authenticator, Microsoft Authenticator) ou chaves físicas de segurança (YubiKey).' },
+  { id:68, cat:'senha', emoji:'🔧', title:'Senhas Padrão', subtitle:'Troque sempre!', tip:'Roteadores, câmeras e impressoras vêm com "admin/admin". Esses padrões são públicos e os primeiros testados por atacantes. Troque a senha padrão de qualquer dispositivo no primeiro uso.' },
+  { id:69, cat:'senha', emoji:'🔗', title:'Single Sign-On (SSO)', subtitle:'Uma senha, muitos sistemas', tip:'O SSO corporativo centraliza o acesso com autenticação única. Vantagem: monitoramento central. Risco: se comprometido, abre muitas portas. Nunca compartilhe credenciais SSO.' },
+  { id:70, cat:'senha', emoji:'🏭', title:'Gestão de Segredos', subtitle:'Credenciais corporativas', tip:'Senhas de sistemas, chaves de API e credenciais de banco nunca devem ficar em planilhas ou e-mails. Use cofres corporativos de segredos (Vault, CyberArk) aprovados pelo TI.' },
+  { id:71, cat:'senha', emoji:'🔙', title:'Recuperação Segura', subtitle:'Cuidado com as perguntas', tip:'Respostas de segurança como "nome do pet" são facilmente descobertas nas redes sociais. Use respostas falsas e aleatórias, guardadas no gerenciador de senhas.' },
+ 
+  // ── REDES AVANÇADO (IDs 72–81) ──────────────────────────────────────────────
+  { id:72, cat:'redes', emoji:'🌐', title:'DNS Spoofing', subtitle:'Envenenamento de DNS', tip:'O DNS Spoofing redireciona domínios legítimos para IPs dos atacantes. Use sempre o DNS corporativo configurado pelo TI e não altere manualmente as configurações de rede.' },
+  { id:73, cat:'redes', emoji:'👤', title:'Man in the Middle', subtitle:'Interceptação de tráfego', tip:'Em redes não seguras, atacantes interceptam comunicações entre você e o servidor. Use VPN + HTTPS sempre. O cadeado verde indica que o tráfego está criptografado, mas verifique o domínio.' },
+  { id:74, cat:'redes', emoji:'🔒', title:'SSL Stripping', subtitle:'Removendo a criptografia', tip:'SSL stripping remove a proteção HTTPS da sua conexão sem que você perceba. HSTS protege contra isso. Sempre acesse sites críticos digitando "https://" explicitamente.' },
+  { id:75, cat:'redes', emoji:'🦷', title:'Bluetooth Security', subtitle:'Conexão próxima, risco real', tip:'Mantenha o Bluetooth desativado quando não usar. Aceite emparelhamentos apenas de dispositivos conhecidos. Ataques como Bluejacking e Bluesnarfing exploram Bluetooth ativo e visível.' },
+  { id:76, cat:'redes', emoji:'🏠', title:'IoT Security', subtitle:'Dispositivos inteligentes', tip:'Câmeras, fechaduras e termostatos conectados são alvos comuns. Troque as senhas padrão, mantenha firmware atualizado e coloque dispositivos IoT numa rede separada da rede corporativa.' },
+  { id:77, cat:'redes', emoji:'🍪', title:'Session Hijacking', subtitle:'Roubo de sessão via cookie', tip:'Cookies de sessão roubados permitem acesso sem senha. Limpe cookies periodicamente, use HTTPS e extensões de segurança aprovadas pelo TI. Sempre faça logout ao terminar.' },
+  { id:78, cat:'redes', emoji:'🏗️', title:'Segmentação de Rede', subtitle:'Redes isoladas por função', tip:'A Leroy Merlin segmenta redes: caixas, administrativo e Wi-Fi de clientes ficam separados. Conectar um dispositivo pessoal na rede errada pode ser uma brecha de segurança séria.' },
+  { id:79, cat:'redes', emoji:'🖨️', title:'Firewall Pessoal', subtitle:'Sua primeira barreira', tip:'O firewall do Windows/Mac bloqueia conexões não autorizadas. Nunca desative o firewall, mesmo que um programa peça — esse pedido é sinal claro de software malicioso.' },
+  { id:80, cat:'redes', emoji:'📡', title:'Proxy Não Autorizado', subtitle:'Sem aprovação do TI', tip:'Proxies e VPNs pessoais não aprovadas podem interceptar seu tráfego corporativo. Use apenas a VPN oficial. Contornar controles de segurança viola a política e pode expor dados sigilosos.' },
+  { id:81, cat:'redes', emoji:'🔐', title:'HTTPS na Prática', subtitle:'Verificando o cadeado', tip:'HTTPS garante criptografia, mas não garante que o site é legítimo — golpistas também usam HTTPS! Verifique CADEADO + DOMÍNIO CORRETO. Ambos devem estar corretos simultaneamente.' },
+ 
+  // ── ENGENHARIA SOCIAL AVANÇADO (IDs 82–91) ─────────────────────────────────
+  { id:82, cat:'social', emoji:'🚪', title:'Tailgating', subtitle:'Entrada física não autorizada', tip:'Tailgating é quando alguém segue um funcionário por porta segura sem identificação. Nunca segure a porta para estranhos — oriente-os a se identificar na recepção. Segurança sem descortesia.' },
+  { id:83, cat:'social', emoji:'🗑️', title:'Dumpster Diving', subtitle:'Lixo como fonte de dados', tip:'Documentos descartados no lixo são ouro para atacantes. Sempre use a trituradora para destruir papéis com dados corporativos, nomes, senhas ou estruturas internas antes de descartar.' },
+  { id:84, cat:'social', emoji:'👁️', title:'Shoulder Surfing', subtitle:'Espiar por cima do ombro', tip:'Em espaços públicos ou no escritório, pessoas podem ver sua tela ou teclado. Use filtros de privacidade de tela em notebooks corporativos e posicione-se de costas para paredes.' },
+  { id:85, cat:'social', emoji:'🤲', title:'Quid Pro Quo', subtitle:'Troca por informação', tip:'"Posso te ajudar com o sistema se você me der seu login temporário." Nenhum benefício justifica compartilhar credenciais ou contornar políticas de segurança. Recuse sempre.' },
+  { id:86, cat:'social', emoji:'👥', title:'Prova Social', subtitle:'Todo mundo faz...', tip:'"Os outros da equipe já enviaram os dados." O apelo à prova social pressiona para agir sem questionar. Verifique sempre por canal oficial — a maioria provavelmente não enviou nada.' },
+  { id:87, cat:'social', emoji:'👑', title:'Autoridade Falsa', subtitle:'Nome do chefe como arma', tip:'"É o CEO pedindo urgente!" Atacantes usam nomes de líderes para pressionar. Políticas de segurança valem para todos, inclusive diretoria. Confirme por canal direto antes de agir.' },
+  { id:88, cat:'social', emoji:'⏰', title:'Urgência Fabricada', subtitle:'Corra! É agora ou nunca!', tip:'Criar senso de urgência impede reflexão. "Tem que ser em 5 minutos ou o sistema cai!" — empresas legítimas têm processos que não dependem de decisões desesperadas e imediatas.' },
+  { id:89, cat:'social', emoji:'🎁', title:'Reciprocidade como Arma', subtitle:'Favor para criar obrigação', tip:'O atacante faz um pequeno favor para criar senso de obrigação de retribuir com informações. Um favor não obriga você a violar políticas de segurança corporativa — reconheça esse gatilho.' },
+  { id:90, cat:'social', emoji:'🔥', title:'Insider Threat', subtitle:'Ameaça interna', tip:'Ameaças internas podem ser intencionais (funcionário insatisfeito) ou acidentais (erro humano). Relate comportamentos suspeitos ao gestor e TI. O anonimato do reporte protege você.' },
+  { id:91, cat:'social', emoji:'🤝', title:'Risco de Terceiros', subtitle:'Fornecedores como vetor', tip:'Fornecedores com acesso à rede são vetores de ataque. Solicite ao TI que restrinja e monitore acessos externos. Nunca forneça seu login a um prestador de serviço.' },
+ 
+  // ── CORPORATIVO AVANÇADO (IDs 92–101) ──────────────────────────────────────
+  { id:92, cat:'corporativo', emoji:'📱', title:'BYOD — Seu Dispositivo', subtitle:'Celular pessoal na rede', tip:'Dispositivos pessoais na rede corporativa são risco se não tiverem MDM (Mobile Device Management). Siga a política BYOD: registre o dispositivo no TI e mantenha-o sempre atualizado.' },
+  { id:93, cat:'corporativo', emoji:'🏡', title:'Home Office Seguro', subtitle:'Trabalho remoto com segurança', tip:'No home office: use VPN sempre, evite discutir assuntos sigilosos onde outros possam ouvir, use fundo virtual em videochamadas e nunca use computador pessoal para dados corporativos.' },
+  { id:94, cat:'corporativo', emoji:'☁️', title:'Segurança na Nuvem', subtitle:'Onde seus dados realmente ficam', tip:'Arquivos no OneDrive e SharePoint são protegidos. Nunca use Google Drive pessoal, Dropbox ou similares para dados da Leroy Merlin. Dados corporativos ficam em canais corporativos.' },
+  { id:95, cat:'corporativo', emoji:'🏷️', title:'Classificação de Dados', subtitle:'Nem tudo é público', tip:'A Leroy Merlin classifica dados em: Público, Interno, Confidencial e Restrito. Dados de clientes, fornecedores e financeiros são sempre Confidenciais. Trate cada dado conforme sua classificação.' },
+  { id:96, cat:'corporativo', emoji:'📣', title:'Resposta a Incidentes', subtitle:'O que fazer quando algo acontece', tip:'Se detectar um incidente, não tente resolver sozinho. Contacte imediatamente o TI pelo canal oficial, preserve evidências (não desligue o computador) e documente o que observou.' },
+  { id:97, cat:'corporativo', emoji:'✈️', title:'Segurança em Viagens', subtitle:'Dados corporativos na estrada', tip:'Em viagens: use VPN sempre, evite computadores públicos, proteja o notebook com senha de BIOS e considere usar um "travel laptop" sem dados sensíveis para destinos de alto risco.' },
+  { id:98, cat:'corporativo', emoji:'🔍', title:'Monitoramento de Logs', subtitle:'Rastros digitais importam', tip:'Toda ação no sistema é registrada em logs. Isso protege você de acusações indevidas e ajuda o TI a detectar ataques. Nunca tente apagar logs — isso é crime e evidência de má conduta.' },
+  { id:99, cat:'corporativo', emoji:'🩹', title:'Patch Management', subtitle:'Atualizações salvam vidas', tip:'80% dos ataques exploram vulnerabilidades já corrigidas que as vítimas não atualizaram. Não adie atualizações — reinicie o computador quando solicitado pelo TI sem adiar.' },
+  { id:100, cat:'corporativo', emoji:'💌', title:'DLP — Anti-Vazamento', subtitle:'Bloqueio de dados saindo', tip:'O sistema DLP bloqueia envio de dados sensíveis por e-mail ou pen drive. Se seu e-mail foi bloqueado, contacte o TI — nunca tente contornar o bloqueio. O bloqueio é proteção, não obstáculo.' },
+  { id:101, cat:'corporativo', emoji:'🔔', title:'Reporte Sem Medo', subtitle:'Seu alerta protege todos', tip:'Muitos ataques são detectados por funcionários que notaram algo estranho mas não reportaram por vergonha. Não existe reporte idiota. O TI prefere 10 falsos alarmes a 1 ataque real não detectado.' },
+ 
+  // ── DISPOSITIVOS — categoria nova (IDs 102–111) ─────────────────────────────
+  { id:102, cat:'dispositivos', emoji:'📱', title:'Bloqueio Automático', subtitle:'30 segundos de risco', tip:'Configure bloqueio automático para 1 minuto em celulares corporativos e 5 minutos em notebooks. Uma tela desbloqueada por segundos num local movimentado pode expor dados sigilosos.' },
+  { id:103, cat:'dispositivos', emoji:'💿', title:'Atualização de Sistema', subtitle:'Não adie o que protege você', tip:'Atualizações do Windows, iOS e Android corrigem falhas críticas. Configure atualizações automáticas e instale imediatamente quando o TI solicitar. Versões antigas são alvos fáceis.' },
+  { id:104, cat:'dispositivos', emoji:'🔑', title:'Permissões de Apps', subtitle:'O app precisa de câmera?', tip:'Apps pedem permissões excessivas: uma lanterna não precisa de microfone. Revise periodicamente as permissões dos seus apps e negue o que não faz sentido para a função do aplicativo.' },
+  { id:105, cat:'dispositivos', emoji:'🔐', title:'Criptografia de Disco', subtitle:'Dados protegidos se roubarem', tip:'BitLocker (Windows) e FileVault (Mac) criptografam todo o disco — se o notebook for roubado, os dados ficam inacessíveis sem a senha. Confirme com o TI se seu dispositivo está criptografado.' },
+  { id:106, cat:'dispositivos', emoji:'📤', title:'Dispositivo Perdido', subtitle:'O que fazer imediatamente', tip:'Se perder o celular ou notebook corporativo: (1) reporte IMEDIATAMENTE ao TI, (2) o TI pode apagar remotamente o dispositivo, (3) mude suas senhas de outro dispositivo seguro. Cada hora importa.' },
+  { id:107, cat:'dispositivos', emoji:'⌚', title:'Smartwatch Corporativo', subtitle:'Relógio inteligente, risco real', tip:'Smartwatches recebem notificações de e-mails e mensagens. Em reuniões sigilosas, desative as notificações ou retire o smartwatch. Dispositivos conectados expandem sua superfície de ataque.' },
+  { id:108, cat:'dispositivos', emoji:'📹', title:'Segurança em Vídeo', subtitle:'O que aparece nas reuniões', tip:'Antes de videochamadas: verifique o fundo (nada confidencial visível), teste quem está ao redor, use fundo virtual se necessário e confirme que o link da reunião é do canal oficial.' },
+  { id:109, cat:'dispositivos', emoji:'🎙️', title:'Assistentes de Voz', subtitle:'Alexa e Google Home escutam', tip:'Assistentes de voz ficam escutando continuamente. Em reuniões ou conversas sigilosas, desligue-os ou remova-os do ambiente. Eles armazenam fragmentos de áudio nos servidores da nuvem.' },
+  { id:110, cat:'dispositivos', emoji:'💾', title:'Backup Mobile', subtitle:'Dados perdidos = problema real', tip:'Configure backup automático do celular corporativo no sistema aprovado pelo TI. Fotos de documentos, aprovações e dados em apps corporativos devem ter backup regularmente.' },
+  { id:111, cat:'dispositivos', emoji:'🖥️', title:'Computador Público', subtitle:'Nunca confie em PC alheio', tip:'Computadores de hotel ou lan house podem ter keyloggers. Nunca acesse sistemas corporativos em máquinas públicas. Se precisar verificar e-mail urgente, use o celular com VPN ativada.' },
+ 
+  // ── FAMÍLIA / JOVENS — categoria nova (IDs 112–122) ─────────────────────────
+  { id:112, cat:'infantil', emoji:'👨‍👩‍👧', title:'Controle Parental', subtitle:'Proteção digital para crianças', tip:'Configure controles parentais em todos os dispositivos das crianças: limite o tempo de tela, filtre conteúdo e monitore com quem elas conversam online. Conversa aberta é a melhor proteção.' },
+  { id:113, cat:'infantil', emoji:'🔐', title:'Senhas para Crianças', subtitle:'Ensinar cedo faz diferença', tip:'Ensine crianças a criar senhas fortes e a nunca compartilhá-las com amigos. Uma senha secreta é como uma roupa íntima: é só sua! Torne isso natural desde pequeno.' },
+  { id:114, cat:'infantil', emoji:'🚫', title:'Cyberbullying', subtitle:'Violência online é crime', tip:'Cyberbullying é crime no Brasil. Oriente crianças: não respondam, guardem evidências (prints), bloqueiem o agressor e relatem para um adulto de confiança e à plataforma. Nunca sofram em silêncio.' },
+  { id:115, cat:'infantil', emoji:'🎮', title:'Segurança em Games Online', subtitle:'Quem está do outro lado?', tip:'Em jogos online, outros jogadores podem não ser quem dizem ser. Nunca revele nome real, escola, endereço ou telefone. Não aceite presentes de estranhos — podem ter segundas intenções.' },
+  { id:116, cat:'infantil', emoji:'🛒', title:'Compras Online Seguras', subtitle:'Site seguro ou golpe?', tip:'Ensine jovens: verifique se o site tem "https://", CNPJ visível e telefone de contato. Pesquise no Reclame Aqui. Preços muito abaixo do mercado são sinal quase certo de golpe.' },
+  { id:117, cat:'infantil', emoji:'🔍', title:'Verificando Fontes Online', subtitle:'Nem tudo na internet é verdade', tip:'Fake news se espalham rapidamente. Ensine a checar se a notícia aparece em múltiplas fontes confiáveis, verificar a data de publicação e usar sites de fact-checking.' },
+  { id:118, cat:'infantil', emoji:'📸', title:'Privacidade de Fotos', subtitle:'Uma foto pode ir longe', tip:'Fotos publicadas online podem ser salvas e compartilhadas para sempre. Configure perfis como privados, limite quem pode ver fotos e nunca publique informações de localização.' },
+  { id:119, cat:'infantil', emoji:'👾', title:'Phishing em Games', subtitle:'Skins e moedas são iscas', tip:'"Ganhe 10.000 V-Bucks grátis!" Sites falsos prometem moedas de jogos para roubar contas. Nunca insira login de jogo em sites externos. Transações ocorrem APENAS dentro do jogo.' },
+  { id:120, cat:'infantil', emoji:'🌐', title:'Estranhos Online', subtitle:'Online não é diferente', tip:'Regra para crianças: nunca encontre pessoalmente alguém que conheceu apenas online sem o conhecimento e presença dos pais. Predadores online podem levar meses construindo confiança.' },
+  { id:121, cat:'infantil', emoji:'📡', title:'Segurança em Lives', subtitle:'Transmissão ao vivo e riscos', tip:'Ao transmitir ao vivo, evite mostrar endereço, escola, rotina ou objetos de valor. Ative "modo restrito" em plataformas e configure quem pode comentar. O que é transmitido não some.' },
+  { id:122, cat:'infantil', emoji:'💝', title:'Honey Trap Digital', subtitle:'Armadilha romântica online', tip:'Atacantes criam perfis falsos para criar vínculos pessoais e extrair informações. Dados corporativos jamais devem ser compartilhados em relacionamentos online recentes ou com perfis não verificados.' },
 ];
 
 // Memory pairs
@@ -273,7 +447,83 @@ const MEMORY_PAIRS = [
   { emoji:'📋', label:'Política' }, { emoji:'🔄', label:'Backup' },
 ];
 
-// Quiz data
+//QUIZ DE DIFICULDADE — 20 perguntas cada 3 dificuldades
+// Pontuação: Fácil=+10pts | Médio=+20pts | Difícil=+30pts por acerto
+ 
+// ── NÍVEL FÁCIL — Conceitos básicos, situações claras ──────────────────────
+const QUIZ_EASY = [
+  { cat:'Phishing', q:'Você recebe um e-mail do "RH da Leroy Merlin" pedindo que atualize sua senha clicando em um link. O remetente é "rh@leroy-merlin-portal.xyz". O que você faz?', opts:['Clico no link porque o e-mail parece oficial','Verifico com o RH real por telefone antes de qualquer ação','Respondo o e-mail perguntando se é legítimo','Clico, mas fico atento a qualquer sinal suspeito'], correct:1, fb:'✅ Correto! Sempre verifique por canal independente (telefone). O domínio "leroy-merlin-portal.xyz" NÃO é o domínio oficial. Remetentes falsos são o sinal mais claro de phishing.' },
+  { cat:'Senhas', q:'Seu gerente diz que precisa da sua senha para acessar o sistema enquanto você está de férias. O que você faz?', opts:['Forneço a senha só para o meu gerente direto','Recuso e explico que o TI pode conceder acesso temporário adequado','Anoto a senha num post-it e deixo na gaveta','Crio uma senha temporária e envio por WhatsApp'], correct:1, fb:'✅ Correto! Ninguém deve saber sua senha pessoal — nem seu gestor. O TI tem ferramentas para conceder acesso temporário de forma segura e auditável.' },
+  { cat:'Malware', q:'Um pop-up diz "Seu computador está infectado! Instale este antivírus AGORA!" com botão de download. O que você faz?', opts:['Instalo o antivírus indicado','Fecho o navegador pelo Task Manager e reporto ao TI','Clico em "X" no pop-up para fechar','Reinicio e depois instalo'], correct:1, fb:'✅ Correto! Este é um golpe "scareware". Feche via Task Manager (Ctrl+Shift+Esc) e reporte ao TI imediatamente.' },
+  { cat:'Redes', q:'Você precisa verificar um e-mail corporativo urgente e só tem acesso ao Wi-Fi do shopping. O que você faz?', opts:['Conecto no Wi-Fi do shopping pois é mais rápido','Uso meus dados móveis com a VPN corporativa','Conecto no Wi-Fi mas só acesso sites seguros (https)','Conecto e uso normalmente'], correct:1, fb:'✅ Correto! Wi-Fi público é monitorável. Use dados móveis com VPN para acessar sistemas corporativos.' },
+  { cat:'Senhas', q:'Qual das senhas abaixo é mais segura para o sistema corporativo?', opts:['leroy2025','123456','!MtQ8#kR2vPx@','nomefilho'], correct:2, fb:'✅ Correto! "!MtQ8#kR2vPx@" combina letras maiúsculas, minúsculas, números e símbolos aleatórios — muito difícil de quebrar.' },
+  { cat:'USB', q:'Você encontra um pen drive no estacionamento da loja com a etiqueta "Salários 2025". O que você faz?', opts:['Conecto para ver o conteúdo antes de decidir','Entrego ao TI sem conectar em nenhum dispositivo','Deixo onde estava para o dono pegar','Formato e uso como pen drive pessoal'], correct:1, fb:'✅ Correto! Técnica chamada "baiting". Pen drives abandonados podem conter malware que instala automaticamente ao ser conectado.' },
+  { cat:'Phishing', q:'Você recebe SMS: "Seu pacote dos Correios está retido. Clique: https://bit.ly/entrega123". Você não esperava pacote. O que faz?', opts:['Clico para verificar do que se trata','Ignoro e deleto a mensagem','Reencaminho para amigos como aviso','Clico mas não coloco dados'], correct:1, fb:'✅ Correto! Smishing (phishing por SMS) usa links encurtados para ocultar destinos maliciosos. Acesse o site dos Correios diretamente no navegador.' },
+  { cat:'Corporativo', q:'Você vai ao almoço com planilha de dados de clientes aberta no computador. O que você faz?', opts:['Deixo aberto pois volto em 1 hora','Bloqueio a tela (Win+L) e guardo documentos físicos','Apenas reduzo a janela','Peço ao colega para monitorar'], correct:1, fb:'✅ Correto! Sempre bloqueie o computador ao se ausentar (Win+L), mesmo por poucos minutos. Dados de clientes expostos violam a LGPD.' },
+  { cat:'Malware', q:'Um colega manda por WhatsApp um arquivo "proposta_fornecedor.docx". Você não esperava. O que você faz?', opts:['Abro pois confio no colega','Confirmo por outro canal e escaneo antes de abrir','Abro se tiver antivírus ativo','Mando para mais colegas verificarem'], correct:1, fb:'✅ Correto! Contas de WhatsApp podem ser comprometidas. Confirme por telefone e escaneie antes de abrir.' },
+  { cat:'Senhas', q:'Você usa a mesma senha em todos os sistemas. Qual é o principal risco?', opts:['Nenhum, pois a senha é forte','Se uma conta for hackeada, todas ficam comprometidas','A senha pode ser esquecida','O sistema pode bloquear por excesso de logins'], correct:1, fb:'✅ Correto! "Credential stuffing" — criminosos testam senhas vazadas em outros serviços. Use senhas únicas por sistema.' },
+  { cat:'Phishing', q:'E-mail promete vale-presente de R$500 da Leroy Merlin pedindo dados bancários. Você nunca participou de sorteio. O que faz?', opts:['Preencho pois parece promoção da empresa','Deleto e reporto ao TI como phishing','Ligo para a Leroy Merlin confirmar','Preencho com dados fictícios para testar'], correct:1, fb:'✅ Correto! A Leroy Merlin nunca solicita dados bancários por e-mail. Reporte ao TI para proteger outros colegas.' },
+  { cat:'Corporativo', q:'Você ainda tem acesso ao sistema de uma loja onde trabalhou 6 meses atrás, mas foi transferido. O que faz?', opts:['Mantenho pois pode ser útil','Reporto ao TI para que o acesso seja revogado','Uso apenas em emergências','Ignoro pois não pretendo usar'], correct:1, fb:'✅ Correto! Acessos desnecessários representam risco. Se comprometido, o invasor terá acesso indevido a sistemas. Reporte ao TI.' },
+  { cat:'Eng. Social', q:'Um "técnico de TI" liga dizendo que detectou atividade suspeita e precisa de acesso remoto ao seu computador. O que você faz?', opts:['Forneço acesso pois parece urgente','Desligo e contato o TI pelo número oficial da empresa','Peço o nome dele e depois permito','Dou o acesso mas monitoro o que ele faz'], correct:1, fb:'✅ Correto! O TI legítimo nunca liga pedindo acesso remoto não solicitado. Confirme pelo número oficial antes de qualquer ação.' },
+  { cat:'Redes', q:'Um colega sugere instalar um programa gratuito de compartilhamento de tela encontrado online. O que você faz?', opts:['Instalo pois facilita o trabalho','Oriento sobre as ferramentas aprovadas pelo TI (Teams)','Instalo apenas no meu computador pessoal','Peço ao gestor e instalo se ele autorizar verbalmente'], correct:1, fb:'✅ Correto! Shadow IT representa risco real. A Leroy Merlin oferece ferramentas aprovadas. Software não autorizado pode abrir brechas.' },
+  { cat:'Phishing', q:'Como verificar se uma URL é segura antes de clicar?', opts:['O site tem design bonito e profissional','A URL começa com https:// E o domínio corresponde ao site esperado','O site carrega rapidamente','Há um formulário de login organizado'], correct:1, fb:'✅ Correto! HTTPS + domínio correto são os dois sinais essenciais. Sites de phishing também usam HTTPS — sempre verifique o domínio completo.' },
+  { cat:'Dispositivos', q:'Qual é a forma mais segura de proteger seu smartphone corporativo em caso de furto?', opts:['Usar PIN numérico de 4 dígitos','Ativar biometria + PIN longo + criptografia + rastreamento remoto','Usar padrão visual de desbloqueio','Anotar a senha num papel na carteira'], correct:1, fb:'✅ Correto! Biometria + PIN forte + criptografia + rastreamento é a proteção mais completa. O TI pode apagar remotamente se registrado no MDM.' },
+  { cat:'Malware', q:'Você vai instalar um programa e o Windows pede autorização sem você ter iniciado nada. O que provavelmente está acontecendo?', opts:['É atualização normal do Windows','Algum programa malicioso pode estar tentando se instalar','O antivírus está fazendo manutenção','O disco está desfragmentando'], correct:1, fb:'✅ Correto! Nunca autorize instalações que você não iniciou. Feche com Ctrl+Alt+Del e reporte ao TI imediatamente.' },
+  { cat:'Família', q:'Seu filho de 10 anos diz que fez um amigo num jogo online e quer encontrá-lo pessoalmente. O que você faz?', opts:['Deixo se a pessoa parecer boa no jogo','Explico os riscos e nunca permito encontros com estranhos da internet sem supervisão','Pergunto o nome e endereço da pessoa','Analiso as conversas e decido depois'], correct:1, fb:'✅ Correto! Predadores online constroem confiança durante meses. Nunca permita encontros com pessoas conhecidas apenas online sem supervisão adequada.' },
+  { cat:'Corporativo', q:'Você recebe e-mail corporativo pedindo confirmação de dados numa planilha, e o remetente é seu próprio endereço. O que você faz?', opts:['Preencho pois veio do meu próprio e-mail','Reporto ao TI — e-mail com meu remetente é técnica de spoofing','Ignoro e deleto sem reportar','Respondo pedindo mais informações'], correct:1, fb:'✅ Correto! E-mail spoofing faz parecer que a mensagem veio de você mesmo. É phishing sofisticado. Reporte ao TI imediatamente.' },
+  { cat:'Senhas', q:'Um colega sugere usar a mesma senha em sistemas corporativos "para não esquecer". O que você responde?', opts:['Concordo pois é prático','Explico que senhas únicas e gerenciadores de senhas são a prática correta e segura','Concordo mas uso uma variação da senha em cada sistema','Não me importo com a escolha dele'], correct:1, fb:'✅ Correto! Senhas únicas por sistema e uso de gerenciador corporativo são as melhores práticas. Reutilizar senhas é um dos maiores riscos de segurança.' },
+];
+ 
+// ── NÍVEL MÉDIO — Cenários corporativos com mais nuances ───────────────────
+const QUIZ_MEDIUM = [
+  { cat:'CEO Fraud', q:'Você recebe e-mail do endereço exato do seu CEO pedindo transferência urgente de R$50.000 para um fornecedor. Ele diz para não ligar. O que você faz?', opts:['Realizo pois o e-mail é do endereço correto','Contato o CFO e o CEO por telefone antes de qualquer transferência','Peço o CNPJ do fornecedor e transfiro','Transfiro e reporto depois'], correct:1, fb:'✅ Correto! E-mail spoofing pode imitar endereços exatos. Pedidos financeiros urgentes com instrução de não ligar são clássicos de CEO Fraud (BEC).' },
+  { cat:'Redes', q:'Ao conectar no Wi-Fi da empresa, você vê dois SSIDs: "Leroy-Merlin-Corp" e "Leroy-Merlin-Corp2". O TI nunca informou sobre a segunda rede. O que faz?', opts:['Conecto no "Corp2" pois deve ser rede mais nova','Conecto no "Corp" e reporto a "Corp2" suspeita ao TI imediatamente','Conecto em qualquer uma pois o nome é parecido','Conecto em ambas para ver qual é mais rápida'], correct:1, fb:'✅ Correto! "Corp2" pode ser um Evil Twin Attack — rede falsa para interceptar tráfego. Sempre confirme com o TI quais SSIDs são oficiais.' },
+  { cat:'Malware', q:'Seu computador está lento, ventilador sempre no máximo e CPU a 90%+ sem programas abertos. O que provavelmente aconteceu?', opts:['O computador precisa de limpeza física','Pode ser um cryptojacker ou malware — reporte ao TI imediatamente','É normal após atualização do Windows','O disco está cheio e precisa de desfragmentação'], correct:1, fb:'✅ Correto! Esses sintomas são clássicos de cryptojacking (mineração em segundo plano) ou outros malwares consumindo recursos. Reporte ao TI sem demora.' },
+  { cat:'Acesso Físico', q:'Um "prestador de serviços" entra na loja dizendo que o TI enviou para verificar o cabeamento. Você não tem ordem de serviço. O que faz?', opts:['Deixo trabalhar pois o TI costuma enviar técnicos sem aviso','Contato o TI pelo número oficial para confirmar antes de permitir o acesso','Peço o crachá e permito o acesso','Peço o nome e anoto para verificar depois'], correct:1, fb:'✅ Correto! Confirme SEMPRE com o TI antes de permitir acesso físico de terceiros. Crachá pode ser falsificado — somente confirmação via canal oficial vale.' },
+  { cat:'Senhas', q:'Você precisa de acesso a um sistema crítico mas o processo do TI leva 2 dias. Um colega oferece usar o login dele "só por hoje". O que faz?', opts:['Aceito pois é só por hoje e o prazo é urgente','Recuso e escalo o pedido ao gestor para priorização no TI','Aceito e depois reporto o acesso não autorizado','Aceito mas não executo ações sensíveis'], correct:1, fb:'✅ Correto! Compartilhar login é sempre proibido. Cada usuário tem trilha de auditoria individual. Se algo der errado, a responsabilidade seria do colega.' },
+  { cat:'Cloud', q:'Você precisa compartilhar arquivo confidencial com fornecedor externo. Qual é a forma mais segura?', opts:['Anexar no e-mail pessoal do fornecedor','Usar o portal de compartilhamento externo aprovado pelo TI com link de expiração','Subir no Google Drive pessoal e enviar o link','Enviar por WhatsApp direto'], correct:1, fb:'✅ Correto! Portais corporativos controlam quem acessa, registram logs e permitem revogar acesso. Google Drive pessoal e WhatsApp estão fora do controle corporativo.' },
+  { cat:'LGPD', q:'Um cliente pede para deletar todos os seus dados do sistema da Leroy Merlin. O que você deve fazer?', opts:['Deleto manualmente no sistema e confirmo para ele','Oriento o cliente a fazer a solicitação formal pelo canal oficial de LGPD','Digo que não é possível deletar dados de clientes','Deleto apenas os dados de contato'], correct:1, fb:'✅ Correto! Sob a LGPD, clientes têm direito ao esquecimento, mas a solicitação deve seguir o processo formal da empresa para ser documentada e tratada pelo Compliance.' },
+  { cat:'Home Office', q:'Você usa o roteador doméstico padrão do provedor em home office. Qual ação de segurança é mais urgente?', opts:['Desativar o Wi-Fi quando não usar','Trocar a senha padrão, atualizar o firmware e ativar WPA3/WPA2','Colocar o roteador num local ventilado','Aumentar a potência do sinal'], correct:1, fb:'✅ Correto! Roteadores com senha padrão são alvos triviais. Troque a senha admin, atualize o firmware e use WPA2 ou WPA3 para proteger toda a rede doméstica.' },
+  { cat:'Incidente', q:'Você suspeita que seu computador foi comprometido. Qual é a sequência CORRETA?', opts:['Desligar o computador e formatar imediatamente','Desconectar da rede, NÃO desligar, e contatar o TI preservando evidências','Continuar trabalhando e reportar no final do dia','Executar antivírus rápido e se limpar, continuar normalmente'], correct:1, fb:'✅ Correto! Desligar pode apagar evidências forenses. Desconectar da rede impede propagação. O TI fará a análise forense. Preservar evidências é crucial.' },
+  { cat:'Dispositivos', q:'Você recebe um app de RH por WhatsApp dizendo que é obrigatório para acessar o contracheque. O que faz?', opts:['Instalo pois veio do grupo de funcionários','Verifico com o RH/TI se é legítimo antes de instalar','Instalo mas não dou as permissões que pede','Peço confirmação de um colega e instalo se ele confirmar'], correct:1, fb:'✅ Correto! Apps corporativos legítimos são distribuídos pela loja oficial ou portal do TI, nunca por WhatsApp. Instalar APKs externos é extremamente arriscado.' },
+  { cat:'Phishing', q:'E-mail idêntico ao do seu banco avisa sobre transação suspeita e pede confirmação. O link tem "https://". O que faz?', opts:['Acesso o link pois tem HTTPS e o e-mail parece perfeito','Acesso o banco DIRETAMENTE pelo app oficial ou digitando a URL no navegador','Respondo o e-mail confirmando que não reconheço a transação','Encaminho para o TI da empresa'], correct:1, fb:'✅ Correto! HTTPS não garante legitimidade — sites de phishing usam HTTPS também. Acesse SEMPRE o banco pelo app oficial ou URL que você conhece.' },
+  { cat:'Eng. Social', q:'Você vê um colega abrindo a porta segura para pessoa com as mãos ocupadas que diz "Sou do marketing". O que faz?', opts:['Nada, pois o colega já o deixou entrar','Abordado com educação, solicito que ele se registre na recepção','Verifico o crachá a distância e se parecer ok, não faço nada','Reporto ao gestor discretamente depois'], correct:1, fb:'✅ Correto! Tailgating é ameaça real. Abordar com educação e direcionar para a recepção é o procedimento correto — você não está sendo rude, está seguindo a política de segurança.' },
+  { cat:'BYOD', q:'Você usa celular pessoal para acessar e-mails corporativos. O celular foi roubado. Qual é o impacto e ação correta?', opts:['Nenhum impacto pois o e-mail tem senha','Reportar ao TI imediatamente para revogar acesso e apagar o dispositivo remotamente','Trocar apenas a senha do e-mail','Registrar boletim de ocorrência e aguardar'], correct:1, fb:'✅ Correto! Celulares com acesso a e-mails corporativos devem estar no MDM. O TI pode revogar o acesso e, se registrado, apagar os dados remotamente.' },
+  { cat:'Redes', q:'O certificado HTTPS de um site corporativo mostra aviso de "certificado inválido". O que você faz?', opts:['Clico em "Avançado" e continuo pois o TI às vezes tem certificados expirados','Reporto ao TI e não acesso até que o problema seja resolvido','Acesso por HTTP para contornar o aviso','Instalo o certificado manualmente'], correct:1, fb:'✅ Correto! Aviso de certificado pode indicar Man-in-the-Middle ou certificado expirado. Em ambos os casos, reporte ao TI. Nunca clique em "Continuar assim mesmo".' },
+  { cat:'Dados', q:'Você vai descartar um notebook corporativo antigo. Qual é o procedimento correto?', opts:['Formatar e dar para caridade','Entregar ao TI para descarte seguro com apagamento certificado ou destruição do HD','Deletar os arquivos pessoais e devolver ao almoxarifado','Vender para colegas após formatar'], correct:1, fb:'✅ Correto! Formatação simples não apaga dados permanentemente — ferramentas forenses conseguem recuperá-los. O TI deve realizar apagamento seguro (overwrite múltiplo ou destruição física).' },
+  { cat:'Phishing', q:'E-mail profissional com seu nome, cargo e projeto atual pede confirmação de credenciais. Como alguém obteve esses detalhes?', opts:['O e-mail deve ser interno e legítimo pois tem dados precisos','Podem ter obtido via LinkedIn, redes sociais ou data breach — é spear phishing','Só o RH teria esses dados, então é seguro','É o sistema de RH pedindo atualização'], correct:1, fb:'✅ Correto! Spear phishing usa dados pesquisados em redes sociais e vazamentos. Precisão nos dados NÃO significa legitimidade da mensagem.' },
+  { cat:'Corporativo', q:'Você descobre que um colega está copiando dados de clientes para HD externo pessoal "para trabalhar em casa". O que faz?', opts:['Nada, pois é decisão dele e deve ter autorização','Reporto ao gestor e TI imediatamente — pode ser insider threat','Pergunto a ele se tem autorização e aceito a resposta','Reporto anonimamente apenas se tiver certeza absoluta'], correct:1, fb:'✅ Correto! Cópia de dados de clientes para dispositivos pessoais sem autorização viola a LGPD e a política interna. Reporte — isso não é "dedo-durismo", é proteção da empresa.' },
+  { cat:'Acesso', q:'Você precisa acessar o sistema corporativo de urgência e só tem o computador pessoal de um familiar. O que faz?', opts:['Acesso normalmente pois é urgente','Uso apenas o celular corporativo com VPN ou aguardo acesso a equipamento aprovado','Acesso e apago o histórico do navegador depois','Uso o modo anônimo do navegador'], correct:1, fb:'✅ Correto! Computadores de terceiros podem ter keyloggers ou malware. Modo anônimo não protege contra programas instalados. Use apenas dispositivos aprovados.' },
+  { cat:'Eng. Social', q:'Um "jornalista" pede entrevista e pergunta sobre processos internos, sistemas usados e número de funcionários. O que faz?', opts:['Respondo pois é informação pública','Oriento a entrar em contato com o departamento de comunicação/relações públicas','Respondo apenas o que está no site público','Verifico as credenciais e respondo se parecer legítimo'], correct:1, fb:'✅ Correto! Informações sobre sistemas, estrutura e processos são usadas em ataques. Todo contato de imprensa deve passar pelo departamento oficial de comunicação.' },
+  { cat:'Senhas', q:'A senha mestre do seu gerenciador de senhas foi comprometida. Qual é a PRIMEIRA ação?', opts:['Trocar apenas a senha mestre do gerenciador','Trocar a senha mestre + ativar MFA + trocar senhas de contas críticas imediatamente','Deletar o gerenciador e criar senhas manualmente','Aguardar para ver se há movimentação suspeita'], correct:1, fb:'✅ Correto! Comprometimento da senha mestre expõe todas as senhas. Sequência: (1) altere a senha mestre, (2) confirme MFA, (3) troque prioritariamente senhas de banco, e-mail e sistemas críticos.' },
+];
+ 
+// ── NÍVEL DIFÍCIL — Cenários técnicos, ambíguos, alta pressão ──────────────
+const QUIZ_HARD = [
+  { cat:'APT', q:'E-mail legítimo de parceiro confirmado, com histórico real de conversas, mas traz link para documento novo. O antivírus não alerta. Qual é o risco e a ação correta?', opts:['Zero risco — e-mail é legítimo e antivírus liberou','Risco de supply chain attack ou account takeover. Confirmar por telefone com o parceiro antes de qualquer interação','Risco baixo — abrir mas não preencher formulários internos','Encaminhar para colega verificar'], correct:1, fb:'✅ Correto! Ataques de cadeia de fornecimento comprometem a conta de um parceiro legítimo. Histórico real e ausência de alerta do antivírus não garantem segurança em ataques sofisticados de zero-day.' },
+  { cat:'Forense', q:'Durante análise de incidente, o TI pede que você NÃO desligue seu computador comprometido. Por quê?', opts:['Para economizar energia enquanto investigam','Memória RAM contém artefatos forenses voláteis (processos, conexões, malware fileless) apagados ao desligar','Para não perder arquivos abertos','Para o antivírus terminar a varredura'], correct:1, fb:'✅ Correto! Malwares fileless existem apenas na RAM. Desligar destrói evidências cruciais. A análise de memória volátil (RAM dump) é fundamental para identificar vetores de ataque.' },
+  { cat:'Zero-Day', q:'O TI emite alerta sobre vulnerabilidade zero-day crítica no software que você usa, mas o patch ainda não está disponível. Qual é a mitigação mais eficaz?', opts:['Continuar usando o software pois o patch virá em breve','Aplicar workarounds do fabricante, isolar o sistema da internet se possível e aumentar monitoramento','Desinstalar e reinstalar o software','Atualizar o antivírus e continuar normalmente'], correct:1, fb:'✅ Correto! Em zero-days sem patch: seguir workarounds do fabricante, isolar o sistema, monitorar IoCs e aguardar patch. Antivírus não detecta zero-days por definição.' },
+  { cat:'SIM Swap', q:'Você tentou usar o 2FA por SMS mas o código não chegou. Logo depois, seu celular perde sinal completamente. O que provavelmente aconteceu e qual é a ação imediata?', opts:['Problema da operadora, aguardar o sinal voltar','Possível SIM Swap — ligar para a operadora de outro telefone e bloquear o número imediatamente, depois trocar senhas de contas críticas','Reiniciar o celular e tentar novamente','Ir a uma loja da operadora pessoalmente'], correct:1, fb:'✅ Correto! SIM Swap é quando criminosos convencem a operadora a transferir seu número para um chip deles, interceptando SMS de 2FA. Ação imediata: bloqueio via outro dispositivo.' },
+  { cat:'Ransomware', q:'Arquivos da rede compartilhada estão com extensão estranha (.locked) e um arquivo de texto aparece: "Seus arquivos foram criptografados. Pague..." O que fazer nos primeiros 60 segundos?', opts:['Pagar o resgate para recuperar os arquivos rapidamente','Desconectar IMEDIATAMENTE o computador e todos os drives da rede, alertar o TI e não desligar','Executar antivírus para tentar descriptografar','Copiar os arquivos não afetados para um pen drive'], correct:1, fb:'✅ Correto! Ransomware se propaga por redes compartilhadas. Prioridade: ISOLAR (desconectar rede, drives). NÃO pagar. O backup offline é a única recuperação real.' },
+  { cat:'Privilege Escalation', q:'Um desenvolvedor propõe compartilhar credenciais de administrador entre a equipe para agilizar deploys. Qual é o principal risco técnico?', opts:['Nenhum, pois são funcionários confiáveis','Impossibilidade de auditoria individual, superfície de ataque exponencial e risco de insider threat — usar service accounts ou ferramentas PAM','Risco de esquecimento da senha compartilhada','Risco de sobrecarga do sistema'], correct:1, fb:'✅ Correto! Credenciais compartilhadas eliminam a trilha de auditoria individual. A solução correta é usar service accounts com permissões mínimas ou uma solução PAM como CyberArk.' },
+  { cat:'Deepfake', q:'Você recebe uma ligação com a voz idêntica ao seu diretor pedindo uma lista de clientes VIP urgente antes de uma reunião. O que faz?', opts:['Envio a lista pois reconheço perfeitamente a voz do diretor','Digo que precisará confirmar por e-mail corporativo oficial — tecnologia deepfake de voz pode imitar qualquer pessoa','Peço para ele confirmar um dado pessoal que só ele saberia','Envio metade da lista como teste'], correct:1, fb:'✅ Correto! Deepfake de voz por IA imita qualquer pessoa com amostras de áudio públicas. Autenticação por voz NÃO é mais confiável. Exija confirmação por canal alternativo documentado.' },
+  { cat:'Supply Chain', q:'Software de gestão de estoque lança atualização automática. Após ela, o TI percebe tráfego de rede suspeito saindo para IPs desconhecidos. Qual é a hipótese mais preocupante?', opts:['O software está sincronizando dados com o servidor do fabricante','Possível ataque de supply chain — o fabricante pode ter sido comprometido e a atualização contém malware','O firewall está bloqueando a atualização','O TI precisa atualizar as regras de DNS'], correct:1, fb:'✅ Correto! Ataques de supply chain infectam software legítimo na fonte (fabricante). O ataque SolarWinds é o caso mais famoso. A atualização é distribuída pelos canais normais mas contém código malicioso.' },
+  { cat:'Compliance', q:'Um auditor externo pede urgente exportar relatório completo de 12 meses de transações incluindo dados pessoais de clientes. Qual é a resposta correta?', opts:['Gero e envio pois auditores têm direito de acesso','Encaminho para o Compliance Officer e jurídico verificarem a legitimidade antes de qualquer exportação','Solicito o número do processo judicial e então envio','Envio os dados anonimizados como primeiro passo'], correct:1, fb:'✅ Correto! Dados pessoais de clientes são protegidos pela LGPD. Qualquer compartilhamento com terceiros deve ter base legal verificada, contrato de confidencialidade e aprovação do DPO.' },
+  { cat:'Botnet', q:'O TI notifica que um IP interno gera tráfego de saída massivo às 3h da manhã para IPs em múltiplos países. O computador pertence a funcionário de folga. Qual é a interpretação mais provável?', opts:['O computador está atualizando automaticamente','O computador foi comprometido e está sendo usado como bot numa botnet ou como pivot para exfiltração de dados','O antivírus está fazendo backup na nuvem','O funcionário deixou um download em andamento'], correct:1, fb:'✅ Correto! Tráfego noturno massivo para IPs externos desconhecidos é sinal clássico de botnet, backdoor ou exfiltração. O computador deve ser isolado imediatamente para análise forense.' },
+  { cat:'Certificado', q:'Seu navegador mostra "Conexão não segura" no sistema de RH interno. O certificado expirou ontem. Qual ação NÃO deve ser tomada?', opts:['Reportar ao TI para renovação urgente','Clicar em "Avançado > Continuar assim mesmo" para acessar os dados urgentes','Aguardar a renovação antes de inserir qualquer credencial','Usar o app mobile oficial do sistema se disponível'], correct:1, fb:'✅ Correto! "Continuar assim mesmo" desativa a verificação de autenticidade, tornando você vulnerável a Man-in-the-Middle. Certificado expirado é urgência para o TI, não justificativa para contornar segurança.' },
+  { cat:'Insider Threat', q:'Você suspeita que um colega está exfiltrando dados usando canal de comunicação criptografado pessoal (Signal) no computador corporativo. Qual é a abordagem correta?', opts:['Verificar o celular do colega discretamente para confirmar','Reportar a suspeita ao gestor e TI com as evidências que você tem — nunca investigar você mesmo','Confrontar o colega diretamente para resolver internamente','Aguardar mais evidências antes de reportar'], correct:1, fb:'✅ Correto! Investigação não autorizada por você pode contaminar evidências e criar problemas legais. Reporte ao gestor e TI com o que observou — eles têm ferramentas e autoridade legal.' },
+  { cat:'OAuth', q:'E-mail pede para autorizar um app de "calendário corporativo" no Google. Ao clicar, pede permissão para "Ler e enviar e-mails em seu nome". O que faz?', opts:['Autorizo pois precisamos sincronizar calendário e e-mail','Recuso — permissão de leitura e envio de e-mails é excessiva para app de calendário; reporto ao TI','Autorizo apenas a parte do calendário','Autorizo e configuro para expirar em 24h'], correct:1, fb:'✅ Correto! Permissões OAuth excessivas são usadas em ataques de "consent phishing". App de calendário NÃO precisa ler e enviar seus e-mails. Permissões suspeitas → reportar ao TI.' },
+  { cat:'GitHub Leak', q:'Você encontra no Google um repositório público no GitHub com código do sistema interno da empresa, incluindo credenciais de banco de dados em produção. O que faz?', opts:['Fechar a aba pois já está público de qualquer forma','Reportar IMEDIATAMENTE ao TI — credenciais expostas devem ser rotacionadas em minutos','Avisar o colega que postou para ele remover','Salvar as credenciais para fins de acesso de backup'], correct:1, fb:'✅ Correto! Credenciais em repositórios públicos são descobertas por ferramentas automatizadas em minutos. A janela de ação é curtíssima. O TI deve revogar e rotacionar credenciais imediatamente.' },
+  { cat:'Teams Phishing', q:'Você recebe convite do Teams de usuário externo para reunião. O link leva a página idêntica ao login do Teams pedindo suas credenciais "para verificação de identidade". O que aconteceu?', opts:['É processo normal do Teams para convidados externos','É um ataque de phishing — o Teams real nunca pede login por link externo para reuniões','É configuração de segurança da empresa parceira','É preciso aceitar para participar como convidado'], correct:1, fb:'✅ Correto! O Microsoft Teams não redireciona usuários a páginas externas de login. Credenciais inseridas seriam capturadas. Este é phishing sofisticado via plataforma de colaboração.' },
+  { cat:'Ransom Policy', q:'Após um ransomware, a empresa recebe proposta de empresa especializada em "negociação com hackers". Qual é a posição mais prudente?', opts:['Contratar imediatamente para recuperar os dados mais rápido','Consultar o jurídico, a seguradora e o CISO antes — pagar pode ser ilegal dependendo do grupo criminoso','Pagar diretamente ao hacker para ser mais rápido','Negar qualquer pagamento sem consultar ninguém'], correct:1, fb:'✅ Correto! Pagar ransom pode ser ilegal se o grupo estiver em lista de sanções internacionais. Além disso, não garante recuperação e financia criminosos. Sempre consulte jurídico e autoridades antes.' },
+  { cat:'UEBA', q:'Um sistema crítico usa apenas usuário e senha sem 2FA. Qual é a forma mais eficaz de aumentar a segurança imediatamente sem mudar o sistema?', opts:['Exigir senhas maiores de 20 caracteres','Implementar monitoramento comportamental (horário, localização, volume) com alertas de anomalia e bloqueio automático','Usar senhas diferentes a cada semana','Limitar tentativas de login para 3 por dia'], correct:1, fb:'✅ Correto! Análise comportamental (UEBA) detecta acessos anômalos mesmo sem 2FA: login fora do horário normal, localização diferente ou volume de dados incomum.' },
+  { cat:'Governança', q:'Um executivo de alto nível insiste em ter acesso de administrador completo ao sistema para "facilitar o trabalho". Qual é a resposta correta do time de Segurança?', opts:['Conceder o acesso pois hierarquia deve ser respeitada','Explicar o princípio do privilégio mínimo, os riscos e propor solução alternativa com aprovação documentada do CISO','Conceder acesso temporário de 24h sem documentação','Recusar completamente sem explicação'], correct:1, fb:'✅ Correto! O princípio do privilégio mínimo protege todos, inclusive o executivo — se a conta for comprometida, o atacante terá acesso total. Segurança se aplica independentemente da hierarquia.' },
+  { cat:'Esteganografia', q:'O DLP alerta que imagens JPEG estão sendo enviadas para fora em grande volume por um funcionário. As imagens parecem fotos normais do estoque. Qual é o risco mais avançado?', opts:['Zero risco — são apenas fotos de estoque','Possível uso de esteganografia para exfiltrar dados ocultos dentro das imagens — investigar imediatamente com análise forense','O funcionário pode estar fazendo backup pessoal','O sistema DLP está gerando falso positivo'], correct:1, fb:'✅ Correto! Esteganografia oculta dados (planilhas, senhas, arquivos) dentro de imagens aparentemente normais. É técnica de exfiltração avançada que pode contornar DLP básico.' },
+  { cat:'DevSecOps', q:'Um desenvolvedor encontrou vulnerabilidade crítica no app da Leroy Merlin. Qual é o processo correto de divulgação?', opts:['Postar no GitHub como issue público para ter visibilidade da comunidade','Seguir o processo de Responsible Disclosure interno — reportar ao time de segurança sem divulgar publicamente antes do patch','Postar anonimamente em fórum de segurança','Reportar diretamente ao CEO por e-mail'], correct:1, fb:'✅ Correto! Responsible Disclosure: reportar internamente, dar tempo para corrigir e só então divulgar publicamente se houver acordo. Divulgação prematura expõe usuários antes do patch estar disponível.' },
+];
+// [NOVO END] QUIZ POR DIFICULDADE
+ 
+// Quiz data versão anterior (mantido para referência — não usado na versão atual com níveis)
 const QUIZ_DATA = [
   { cat:'Phishing', q:'Você recebe um e-mail do "RH da Leroy Merlin" pedindo que atualize sua senha clicando em um link. O e-mail parece oficial mas o endereço do remetente é "rh@leroy-merlin-portal.xyz". O que você faz?', opts:['Clico no link porque o e-mail parece oficial','Verifico com o RH real por telefone antes de qualquer ação','Respondo o e-mail perguntando se é legítimo','Clico, mas fico atento a qualquer sinal suspeito'], correct:1, fb:'✅ Correto! Sempre verifique a identidade por canal independente (telefone). O domínio "leroy-merlin-portal.xyz" NÃO é o domínio oficial da empresa. Remetentes falsos são o sinal mais claro de phishing.' },
   { cat:'Senhas', q:'Seu gerente diz que precisa da sua senha para acessar o sistema enquanto você está de férias. O que você faz?', opts:['Forneço a senha só para o meu gerente direto','Recuso e explico que o TI pode conceder acesso temporário adequado','Anoto a senha num post-it e deixo na gaveta','Crio uma senha temporária e envio por WhatsApp'], correct:1, fb:'✅ Correto! Ninguém, nem mesmo seu gestor, deve saber sua senha pessoal. O departamento de TI tem ferramentas para conceder acesso temporário de forma segura e auditável. Esta é uma política de segurança da Leroy Merlin.' },
@@ -345,6 +595,15 @@ let memTimer = null, memSeconds = 0, memTotal = 0;
 // Quiz state
 let quizQueue = [], quizIndex = 0, quizScore = 0;
 let quizAnswered = false;
+ 
+// SISTEMA DE NÍVEIS — progresso por dificuldade
+let quizLevel     = 'easy';
+let quizLevelHits = 0;  // acertos no nível atual
+const LEVEL_POINTS    = { easy:10, medium:20, hard:30 };
+const LEVEL_QUESTIONS = { easy: null, medium: null, hard: null };
+const LEVEL_LABELS    = { easy:'🌱 Fácil', medium:'⚡ Médio', hard:'🔥 Difícil' };
+let unlockedLevels    = new Set(['easy']);
+let levelCompleted    = { easy:false, medium:false, hard:false };
 
 // ═══════════════════════════════════════════════════════
 //  NAVIGATION
@@ -527,17 +786,86 @@ function flipMemCard(idx) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  QUIZ GAME
+//  QUIZ GAME — sistema de níveis
 // ═══════════════════════════════════════════════════════
-
+ 
+// initQuiz — agora carrega os arrays e exibe o seletor de nível
 function initQuiz() {
-  quizQueue = [...QUIZ_DATA].sort(()=>Math.random()-0.5).slice(0,15);
-  quizIndex = 0; quizScore = 0;
+  // Preenche referências após os arrays estarem definidos
+  LEVEL_QUESTIONS.easy   = QUIZ_EASY;
+  LEVEL_QUESTIONS.medium = QUIZ_MEDIUM;
+  LEVEL_QUESTIONS.hard   = QUIZ_HARD;
+  showLevelScreen();
+}
+ 
+// QUIZ LEVEL LOGIC — Seleção, progressão e desbloqueio de nível
+ 
+function showLevelScreen() {
+  document.getElementById('quizLevelScreen').style.display = 'block';
+  document.getElementById('quizGameArea').style.display    = 'none';
   document.getElementById('quizResult').classList.remove('show');
-  document.getElementById('quizGameArea').style.display='block';
+  _updateLevelUI();
+}
+ 
+function _updateLevelUI() {
+  const levels = ['easy','medium','hard'];
+  levels.forEach(lvl => {
+    const card   = document.getElementById('card-'+lvl);
+    const lock   = document.getElementById('lock-'+lvl);
+    const notice = document.getElementById('notice-'+lvl);
+    const node   = document.getElementById('node-'+lvl);
+    const ok     = unlockedLevels.has(lvl);
+    const done   = levelCompleted[lvl];
+ 
+    if (ok) {
+      card.classList.remove('locked');
+      if (lock)   lock.style.display   = 'none';
+      if (notice) notice.style.display = 'none';
+    } else {
+      card.classList.add('locked');
+      if (lock)   lock.style.display   = 'block';
+      if (notice) notice.style.display = 'inline-block';
+    }
+ 
+    node.classList.remove('done','active','locked');
+    if (done)    node.classList.add('done');
+    else if (ok) node.classList.add('active');
+    else         node.classList.add('locked');
+  });
+ 
+  // Conectores
+  [['easy','medium'],['medium','hard']].forEach(([a,b]) => {
+    const conn = document.getElementById(`conn-${a}-${b}`);
+    if (conn) conn.classList.toggle('done', levelCompleted[a]);
+  });
+}
+ 
+function startLevel(level) {
+  if (!unlockedLevels.has(level)) return;
+  quizLevel     = level;
+  quizLevelHits = 0;
+  quizIndex     = 0;
+  quizScore     = 0;
+  quizAnswered  = false;
+ 
+  quizQueue = [...LEVEL_QUESTIONS[level]].sort(()=>Math.random()-0.5).slice(0, 20);
+ 
+  document.getElementById('quizLevelScreen').style.display = 'none';
+  document.getElementById('quizGameArea').style.display    = 'block';
+  document.getElementById('quizResult').classList.remove('show');
+ 
+  const badge = document.getElementById('activeLevelBadge');
+  badge.textContent = LEVEL_LABELS[level];
+  badge.className   = 'level-badge-active ' + level;
+ 
   renderQuestion();
 }
-
+ 
+function backToLevelSelect() { showLevelScreen(); }
+function restartCurrentLevel() { startLevel(quizLevel); }
+// QUIZ LEVEL LOGIC
+ 
+// renderQuestion — adaptado para usar nível e pontuação variável
 function renderQuestion() {
   const q = quizQueue[quizIndex];
   const total = quizQueue.length;
@@ -550,7 +878,7 @@ function renderQuestion() {
   document.getElementById('quizFeedback').textContent = '';
   document.getElementById('quizNext').classList.remove('show');
   quizAnswered = false;
-
+ 
   const letters = ['A','B','C','D'];
   document.getElementById('quizOptions').innerHTML = q.opts.map((o,i)=>`
     <button class="quiz-opt" onclick="answerQuiz(${i})" id="qo-${i}">
@@ -559,7 +887,8 @@ function renderQuestion() {
     </button>
   `).join('');
 }
-
+ 
+// answerQuiz — pontuação agora depende do nível ativo
 function answerQuiz(idx) {
   if (quizAnswered) return;
   quizAnswered = true;
@@ -568,19 +897,22 @@ function answerQuiz(idx) {
   opts.forEach(o=>o.classList.add('disabled'));
   opts[idx].classList.add(idx===q.correct ? 'correct' : 'wrong');
   opts[q.correct].classList.add('correct');
-
+ 
   const fb = document.getElementById('quizFeedback');
   fb.textContent = q.fb;
   fb.className = 'quiz-feedback show ' + (idx===q.correct ? 'correct-fb' : 'wrong-fb');
-
+ 
   if (idx===q.correct) {
-    quizScore += 10;
-    addScore(10);
+    const pts = LEVEL_POINTS[quizLevel];
+    quizScore += pts;
+    quizLevelHits++;
+    addScore(pts);
     document.getElementById('quizScore').textContent = quizScore;
   }
   document.getElementById('quizNext').classList.add('show');
 }
-
+ 
+// nextQuestion
 function nextQuestion() {
   quizIndex++;
   if (quizIndex >= quizQueue.length) {
@@ -589,28 +921,57 @@ function nextQuestion() {
     renderQuestion();
   }
 }
-
+ 
+// showQuizResult — estrelas + desbloqueio de próximo nível
 function showQuizResult() {
   document.getElementById('quizGameArea').style.display='none';
-  const result = document.getElementById('quizResult');
-  result.classList.add('show');
-  const total = quizQueue.length * 10;
-  const pct = Math.round((quizScore/total)*100);
-  document.getElementById('resultScore').textContent = `${quizScore}/${total} pts`;
-  let emoji='🏆', msg='';
-  if(pct>=90){emoji='🌟';msg='Extraordinário! Você é um guardião da segurança digital!';}
-  else if(pct>=70){emoji='🏆';msg='Muito bem! Continue aprendendo para se tornar um especialista!';}
-  else if(pct>=50){emoji='💪';msg='Bom progresso! Revise as dicas para melhorar ainda mais.';}
-  else{emoji='📚';msg='Continue treinando! Cada tentativa te deixa mais seguro.';}
+  document.getElementById('quizResult').classList.add('show');
+ 
+  const total  = quizQueue.length;
+  const pct    = Math.round((quizLevelHits / total) * 100);
+  const maxPts = total * LEVEL_POINTS[quizLevel];
+ 
+  document.getElementById('resultScore').textContent = `${quizScore}/${maxPts} pts`;
+ 
+  // Estrelas por desempenho
+  let stars = '⭐';
+  if (pct >= 90)      stars = '⭐⭐⭐';
+  else if (pct >= 70) stars = '⭐⭐';
+  document.getElementById('resultStars').textContent = stars;
+  // [NOVO END]
+ 
+  let emoji='📚', msg='';
+  if (pct>=90)      { emoji='🌟'; msg='Extraordinário! Você domina este nível!'; }
+  else if (pct>=70) { emoji='🏆'; msg='Muito bem! Continue praticando para chegar ao topo!'; }
+  else if (pct>=50) { emoji='💪'; msg='Bom progresso! Revise as dicas e tente novamente.'; }
+  else              { emoji='📚'; msg='Continue treinando! Cada tentativa te deixa mais seguro.'; }
+ 
   document.getElementById('resultEmoji').textContent = emoji;
-  document.getElementById('resultMsg').textContent = msg;
+  document.getElementById('resultMsg').textContent   = `${msg} (${pct}% de acertos)`;
+ 
+  // Desbloqueio — ≥60% de acerto no nível atual desbloqueia o próximo
+  const unlockEl = document.getElementById('unlockNotice');
+  unlockEl.style.display = 'none';
+  const nextLevel = { easy:'medium', medium:'hard' };
+  const levelName = { medium:'Médio ⚡', hard:'Difícil 🔥' };
+ 
+  if (pct >= 60) {
+    levelCompleted[quizLevel] = true;
+    const next = nextLevel[quizLevel];
+    if (next && !unlockedLevels.has(next)) {
+      unlockedLevels.add(next);
+      unlockEl.textContent    = `🎉 Nível ${levelName[next]} desbloqueado!`;
+      unlockEl.style.display  = 'inline-block';
+    }
+  }
+  // Desbloqueio
+ 
   completedItems++;
   updateStats();
 }
+ 
 
-function restartQuiz() {
-  initQuiz();
-}
+function restartQuiz() { restartCurrentLevel(); }
 
 // ═══════════════════════════════════════════════════════
 //  TIPS PAGE
