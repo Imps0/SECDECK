@@ -1,0 +1,365 @@
+name: SECDECK DevSecOps
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secdeck-devsecops-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/secdeck
+  IMAGE_TAG: sha-${{ github.sha }}
+
+jobs:
+  secrets-scan:
+    name: '1. Secrets — Gitleaks'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan Git history
+        id: scan
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.2 detect \
+            --source=/repo --redact --report-format=json \
+            --report-path=/repo/reports/gitleaks.json --exit-code 1
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          [ -f reports/gitleaks.json ] || echo '[]' > reports/gitleaks.json
+          printf '# Gitleaks\n\nExit code: %s\n' '${{ steps.scan.outcome }}' > reports/relatorio-01-gitleaks.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-01-gitleaks
+          path: reports/
+          if-no-files-found: warn
+      - name: Enforce quality gate
+        if: steps.scan.outcome != 'success'
+        run: exit 1
+
+  sast:
+    name: '2. SAST — Semgrep'
+    needs: secrets-scan
+    if: needs.secrets-scan.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Semgrep
+        id: scan
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          docker run --rm -v "$PWD:/src" semgrep/semgrep:1.125.0 scan \
+            --config p/default --config p/owasp-top-ten --error --json --output /src/reports/semgrep.json /src
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          [ -f reports/semgrep.json ] || echo '{"results":[],"errors":[]}' > reports/semgrep.json
+          printf '# Semgrep\n\nExit code: %s\n' '${{ steps.scan.outcome }}' > reports/relatorio-02-semgrep.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-02-semgrep
+          path: reports/
+          if-no-files-found: warn
+      - name: Enforce quality gate
+        if: steps.scan.outcome != 'success'
+        run: exit 1
+
+  build:
+    name: '3. Build, validation and artifact'
+    needs: sast
+    if: needs.sast.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate static application
+        id: validate
+        continue-on-error: true
+        run: |
+          set -eu
+          test -s index/index.html
+          test -s index/style.css
+          test -d index/img
+          grep -qi '<!doctype html' index/index.html
+          grep -q 'href="style.css"' index/index.html
+          grep -q 'src="img/' index/index.html
+          mkdir -p reports
+          printf 'Validation passed for static SECDECK files.\n' > reports/build.txt
+      - name: Build container image
+        if: steps.validate.outcome == 'success'
+        id: docker-build
+        continue-on-error: true
+        run: |
+          docker build --pull -t secdeck:ci .
+          docker run -d --name secdeck-test -p 8080:8080 secdeck:ci
+          for i in $(seq 1 20); do curl --fail http://127.0.0.1:8080/healthz && break || sleep 2; done
+          curl --fail http://127.0.0.1:8080/index.html -o /dev/null
+          docker rm -f secdeck-test
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          printf '# Build and validation\n\nValidation: %s\nDocker build/health test: %s\n' '${{ steps.validate.outcome }}' '${{ steps.docker-build.outcome }}' > reports/relatorio-03-build.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-03-build
+          path: reports/
+          if-no-files-found: warn
+      - name: Enforce quality gate
+        if: steps.validate.outcome != 'success' || steps.docker-build.outcome != 'success'
+        run: exit 1
+
+  filesystem-scan:
+    name: '4. SCA/config — Trivy filesystem'
+    needs: build
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare reports directory
+        run: mkdir -p reports
+      - name: Scan filesystem
+        id: scan
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: reports/trivy-fs.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+      - name: Generate readable report
+        if: always()
+        run: |
+          mkdir -p reports
+          [ -f reports/trivy-fs.json ] || echo '{"Results":[]}' > reports/trivy-fs.json
+          printf '# Trivy filesystem\n\nExit code: %s\n' '${{ steps.scan.outcome }}' > reports/relatorio-04-trivy-sca.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-04-trivy-sca
+          path: reports/
+          if-no-files-found: warn
+      - name: Enforce quality gate
+        if: steps.scan.outcome != 'success'
+        run: exit 1
+
+  docker-publish:
+    name: '5. Docker build + GHCR'
+    needs: filesystem-scan
+    if: needs.filesystem-scan.result == 'success' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Normalize image name
+        id: meta
+        run: echo "image=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}
+            ${{ steps.meta.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          printf '# Docker build and GHCR\n\nImage: %s:%s\nCommit: %s\n' '${{ steps.meta.outputs.image }}' '${{ env.IMAGE_TAG }}' '${{ github.sha }}' > reports/relatorio-05-docker-build.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-05-docker-build
+          path: reports/
+
+  image-scan:
+    name: '6. Trivy image scan'
+    needs: docker-publish
+    if: needs.docker-publish.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan published image
+        id: scan
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ needs.docker-publish.outputs.image }}:${{ env.IMAGE_TAG }}
+          format: json
+          output: trivy-image.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          [ -f trivy-image.json ] && cp trivy-image.json reports/ || echo '{"Results":[]}' > reports/trivy-image.json
+          printf '# Trivy image scan\n\nExit code: %s\n' '${{ steps.scan.outcome }}' > reports/relatorio-06-trivy-image.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-06-trivy-image
+          path: reports/
+      - name: Enforce quality gate
+        if: steps.scan.outcome != 'success'
+        run: exit 1
+
+  dast-staging:
+    name: '7. Homologação + OWASP ZAP'
+    needs: image-scan
+    if: needs.image-scan.result == 'success' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: homologacao
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger staging deploy with commit-specific image
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+          IMAGE: ${{ needs.docker-publish.outputs.image }}:${{ env.IMAGE_TAG }}
+        run: |
+          test -n "$DEPLOY_HOOK" || { echo 'Missing RENDER_STAGING_DEPLOY_HOOK'; exit 1; }
+          curl --fail --silent --show-error --get "$DEPLOY_HOOK" --data-urlencode "imgURL=$IMAGE"
+      - name: Wait for staging URL
+        env:
+          TARGET: ${{ secrets.STAGING_URL }}
+        run: |
+          test -n "$TARGET" || { echo 'Missing STAGING_URL'; exit 1; }
+          for i in $(seq 1 30); do
+            if curl --fail --silent --show-error "$TARGET/healthz" >/dev/null; then exit 0; fi
+            sleep 10
+          done
+          echo 'Staging did not become healthy in time'; exit 1
+      - name: OWASP ZAP Baseline
+        id: zap
+        continue-on-error: true
+        env:
+          TARGET: ${{ secrets.STAGING_URL }}
+        run: |
+          mkdir -p reports
+          docker run --rm --network host -v "$PWD/reports:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$TARGET/" -m 3 -J report.json -r report.html -w report.md
+      - name: Create stage report
+        if: always()
+        run: |
+          mkdir -p reports
+          printf '# ZAP homologação\n\nExit code: %s\n' '${{ steps.zap.outcome }}' > reports/relatorio-07-homologacao-zap.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-07-homologacao-zap
+          path: reports/
+          if-no-files-found: warn
+      - name: Require successful ZAP execution
+        if: steps.zap.outcome != 'success'
+        run: exit 1
+
+  deploy-production:
+    name: '8. Aprovação + deploy produção'
+    needs: dast-staging
+    if: needs.dast-staging.result == 'success' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: producao
+    permissions:
+      contents: read
+    steps:
+      - name: Trigger production deploy with same tested image
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}
+          IMAGE: ${{ needs.docker-publish.outputs.image }}:${{ env.IMAGE_TAG }}
+        run: |
+          test -n "$DEPLOY_HOOK" || { echo 'Missing RENDER_PRODUCTION_DEPLOY_HOOK'; exit 1; }
+          curl --fail --silent --show-error --get "$DEPLOY_HOOK" --data-urlencode "imgURL=$IMAGE"
+      - name: Create deployment report
+        if: always()
+        run: |
+          mkdir -p reports
+          printf '# Produção\n\nImage: %s\nCommit: %s\nDeploy hook triggered: yes\n' '${{ needs.docker-publish.outputs.image }}:${{ env.IMAGE_TAG }}' '${{ github.sha }}' > reports/relatorio-08-producao.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-08-producao
+          path: reports/
+
+  pipeline-summary:
+    name: 'Resumo da esteira'
+    if: always()
+    needs: [secrets-scan, sast, build, filesystem-scan, docker-publish, image-scan, dast-staging, deploy-production]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build summary
+        env:
+          S1: ${{ needs.secrets-scan.result }}
+          S2: ${{ needs.sast.result }}
+          S3: ${{ needs.build.result }}
+          S4: ${{ needs.filesystem-scan.result }}
+          S5: ${{ needs.docker-publish.result }}
+          S6: ${{ needs.image-scan.result }}
+          S7: ${{ needs.dast-staging.result }}
+          S8: ${{ needs.deploy-production.result }}
+        run: |
+          {
+            echo '# Resumo da Esteira SECDECK'
+            echo
+            echo '| Etapa | Resultado |'
+            echo '|---|---|'
+            echo "| 1. Gitleaks | $S1 |"
+            echo "| 2. Semgrep | $S2 |"
+            echo "| 3. Build/validação | $S3 |"
+            echo "| 4. Trivy filesystem | $S4 |"
+            echo "| 5. Docker + GHCR | $S5 |"
+            echo "| 6. Trivy imagem | $S6 |"
+            echo "| 7. Homologação + ZAP | $S7 |"
+            echo "| 8. Aprovação/produção | $S8 |"
+            echo
+            echo 'Consulte os artifacts de cada job para os relatórios detalhados. `skipped` indica que uma dependência anterior falhou ou que o evento não era elegível para deploy.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          cp "$GITHUB_STEP_SUMMARY" resumo-da-esteira.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resumo-da-esteira
+          path: resumo-da-esteira.md

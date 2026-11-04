@@ -1,0 +1,4 @@
+[extend]
+useDefault = true
+
+# Add narrowly-scoped allowlists only with a documented false-positive rationale.
